@@ -152,7 +152,7 @@ details.help p{color:var(--stone);margin:8px 0 0;}
   <div class="divider"></div>
   <div>
     <div class="htitle">Subir arte de avíos</div>
-    <div class="hsub">Comercial, Logística y Calidad · lo que guardes aparece en el visor de artes</div>
+    <div class="hsub">Logística y Calidad · lo que guardes aparece en el visor de artes</div>
   </div>
   <div class="hstate"><a id="lnkVisor" href="#">Ir al visor de artes →</a></div>
 </div>
@@ -271,7 +271,6 @@ details.help p{color:var(--stone);margin:8px 0 0;}
       <div class="campo" data-id="area">
         <label>Área <span class="req">*</span></label>
         <div class="seg" id="segArea">
-          <button type="button" data-v="COMERCIAL">Comercial</button>
           <button type="button" data-v="LOGÍSTICA">Logística</button>
           <button type="button" data-v="CALIDAD">Calidad</button>
         </div>
@@ -441,7 +440,14 @@ document.querySelectorAll("#segArea button").forEach(b=>{
 function pintarArea(){ document.querySelectorAll("#segArea button").forEach(b=>b.classList.toggle("active",b.dataset.v===AREA)); }
 $("f_por").addEventListener("change",recordar);
 function recordar(){ try{ localStorage.setItem("artes_nombre",$("f_por").value.trim()); localStorage.setItem("artes_area",AREA); }catch(_){ } }
-function recuperar(){ try{ $("f_por").value=localStorage.getItem("artes_nombre")||""; AREA=localStorage.getItem("artes_area")||""; pintarArea(); }catch(_){ } }
+const AREAS_OK=["LOGÍSTICA","CALIDAD"];
+function recuperar(){
+  // Logística es quien sube casi siempre: queda elegida por defecto. Calidad la cambia una vez y se recuerda en su equipo.
+  let a="";
+  try{ $("f_por").value=localStorage.getItem("artes_nombre")||""; a=localStorage.getItem("artes_area")||""; }catch(_){ }
+  AREA=AREAS_OK.includes(a)?a:"LOGÍSTICA";
+  pintarArea();
+}
 
 /* ---------------------------------------------------------------- archivos */
 const kbTxt = kb => kb>=1024 ? (kb/1024).toLocaleString("es-PE",{maximumFractionDigits:1})+" MB" : kb.toLocaleString("es-PE")+" KB";
