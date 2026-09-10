@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subir arte de avíos · LIVES</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --petrol:#0E3B36; --petrol-2:#12463F; --emer:#10B981; --sage:#0F7A5A; --sage-dark:#0B815E;
+  --slate:#4E6B78; --taupe:#B45309; --rose:#DC2626; --tan:#F59E0B;
+  --warm:#DCE5E2; --warm-light:#F1F6F4; --stone:#5F726C; --card:#fff;
+  --sh:0 1px 3px rgba(14,59,54,.06),0 1px 2px rgba(14,59,54,.04);
+  --sh-h:0 4px 12px rgba(14,59,54,.10); --r:12px;
+}
+body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,sans-serif;
+font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums;}
+*{box-sizing:border-box;}
+
+.header{background:var(--petrol);border-bottom:3px solid var(--emer);min-height:70px;
+display:flex;align-items:center;gap:16px;padding:0 22px;flex-wrap:wrap;}
+.header img{height:38px;display:block;}
+.divider{width:1px;height:34px;background:rgba(255,255,255,.3);}
+.htitle{color:#fff;font-size:17px;font-weight:700;letter-spacing:.2px;}
+.hsub{color:#B9CFC9;font-size:11.5px;}
+.hstate{margin-left:auto;color:#B9CFC9;font-size:11.5px;text-align:right;}
+.hstate a{color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+border-radius:8px;padding:8px 12px;display:inline-block;}
+.hstate a:hover{background:var(--petrol-2);}
+
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 44px;}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:22px 20px;
+margin-bottom:14px;position:relative;overflow:hidden;padding-top:24px;}
+.card .tira{position:absolute;left:0;right:0;top:0;height:4px;background:var(--sage);}
+.card .tira.neutra{background:var(--warm);}
+.card .pt{font-size:15px;font-weight:700;}
+.card .ph{font-size:11.5px;color:var(--stone);margin-top:2px;margin-bottom:14px;}
+
+.campo{margin-bottom:14px;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+color:var(--stone);margin-bottom:5px;}
+label .req{color:var(--rose);}
+label .tag{display:none;text-transform:none;letter-spacing:0;font-size:10.5px;background:#FEF3E2;
+color:var(--taupe);border-radius:20px;padding:1px 8px;margin-left:6px;}
+input,select,textarea{width:100%;font-family:inherit;font-size:14px;color:#333;
+border:1px solid var(--warm);border-radius:8px;padding:10px 12px;background:#fff;min-height:44px;}
+textarea{min-height:80px;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--sage);
+box-shadow:0 0 0 3px rgba(15,122,90,.12);}
+.campo.sugerido input,.campo.sugerido select{border-color:var(--tan);background:#FFFCF5;}
+.campo.sugerido label .tag{display:inline-block;}
+.campo.malo input,.campo.malo select,.campo.malo textarea{border-color:var(--rose);background:#FFF7F7;}
+.msg{display:none;font-size:12px;color:var(--rose);margin-top:4px;font-weight:700;}
+.campo.malo .msg{display:block;}
+.ayuda{font-size:11.5px;color:var(--stone);margin-top:4px;}
+.otro{margin-top:8px;display:none;}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:600px){.dos{grid-template-columns:1fr;}}
+.up{text-transform:uppercase;}
+.up::placeholder{text-transform:none;}
+
+.seg{display:inline-flex;background:var(--warm-light);border-radius:8px;padding:3px;gap:2px;}
+.seg button{background:none;border:none;font-family:inherit;font-size:14px;font-weight:700;
+color:var(--stone);padding:10px 18px;border-radius:6px;cursor:pointer;min-height:40px;}
+.seg button.active{background:var(--sage);color:#fff;box-shadow:var(--sh);}
+.campo.malo .seg{box-shadow:0 0 0 1px var(--rose);background:#FFF7F7;}
+
+.drop{border:2px dashed var(--warm);border-radius:var(--r);background:var(--card);
+padding:26px 18px;text-align:center;cursor:pointer;transition:.15s;}
+.drop:hover,.drop.over{border-color:var(--sage);background:var(--warm-light);}
+.drop .big{font-size:16px;font-weight:700;color:#333;margin-bottom:4px;}
+.drop .sm{font-size:12.5px;color:var(--stone);}
+.campo.malo .drop{border-color:var(--rose);background:#FFF7F7;}
+
+.farchs{list-style:none;margin:12px 0 0;padding:0;}
+.farchs li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;
+padding:9px 0;border-bottom:1px solid var(--warm-light);}
+.farchs .ext{width:44px;height:44px;border-radius:8px;background:var(--warm-light);color:var(--stone);
+font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.farchs .ext img{width:100%;height:100%;object-fit:cover;}
+.farchs .nm{font-size:13px;font-weight:700;word-break:break-all;}
+.farchs .sub{font-size:11.5px;color:var(--stone);}
+.farchs .sub.ok{color:var(--sage);font-weight:700;}
+.farchs .sub.mal{color:var(--rose);font-weight:700;}
+.farchs .sub.warn{color:var(--taupe);font-weight:700;}
+.quitar{background:none;border:1px solid var(--warm);border-radius:8px;width:40px;height:40px;
+cursor:pointer;color:var(--stone);font-size:16px;}
+.quitar:hover{border-color:var(--rose);color:var(--rose);}
+
+.reco{list-style:none;margin:0;padding:0;}
+.reco li{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:7px 0;
+border-bottom:1px solid var(--warm-light);font-size:13px;}
+.reco li span:first-child{color:var(--stone);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding-top:2px;}
+.reco .otros{color:var(--stone);font-size:12px;}
+@media(max-width:600px){.reco li{grid-template-columns:1fr;gap:2px;}}
+
+.dup{display:none;margin-top:8px;background:#FEF3E2;border-left:4px solid var(--tan);
+border-radius:0 8px 8px 0;padding:8px 12px;font-size:12.5px;color:#5b4410;}
+
+.acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.btn{font-family:inherit;font-size:14px;font-weight:700;border-radius:8px;padding:12px 18px;
+cursor:pointer;border:1px solid var(--warm);background:#fff;color:var(--sage);min-height:44px;
+text-decoration:none;display:inline-flex;align-items:center;}
+.btn:hover{border-color:var(--sage);}
+.btn.primary{background:var(--sage);color:#fff;border-color:var(--sage);}
+.btn.primary:hover{background:var(--sage-dark);}
+.btn[disabled]{opacity:.6;cursor:default;}
+#estado{font-size:12.5px;color:var(--stone);font-weight:700;}
+
+.aviso{display:none;border-radius:8px;padding:12px 16px;font-size:13px;margin-bottom:14px;}
+.aviso.error{display:block;background:#FBE9E9;border:1px solid var(--rose);color:var(--rose);}
+.aviso.info{display:block;background:#FEF3E2;border:1px solid var(--tan);color:var(--taupe);}
+
+.exito{display:none;text-align:center;padding:34px 20px;}
+.exito .dot{width:64px;height:64px;border-radius:50%;background:#E7F4EF;color:var(--sage);
+display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 14px;}
+.exito .t{font-size:20px;font-weight:700;color:var(--sage);}
+.exito .s{font-size:13.5px;color:var(--stone);margin-top:6px;}
+.exito .cod{font-size:15px;color:#333;margin-top:10px;font-weight:700;}
+.exito .acciones{justify-content:center;margin-top:18px;}
+
+details.help{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);
+padding:12px 16px;margin-top:18px;font-size:13px;}
+details.help summary{cursor:pointer;font-weight:700;color:var(--sage-dark);min-height:32px;display:flex;align-items:center;}
+details.help p{color:var(--stone);margin:8px 0 0;}
+
+@media(max-width:600px){
+  body{font-size:13.5px;}
+  .header{min-height:auto;padding:12px 14px;gap:10px;}
+  .header img{height:30px;}
+  .divider{display:none;}
+  .htitle{font-size:15px;}
+  .hstate{margin-left:0;text-align:left;width:100%;}
+  .wrap{padding:14px 12px 36px;}
+  .card{padding:20px 14px 16px;}
+  .seg{display:flex;}
+  .seg button{flex:1;}
+  .acciones .btn{flex:1;justify-content:center;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .acciones,details.help,.drop{display:none!important;}
+  body{background:#fff!important;}
+  .card{box-shadow:none;border:1px solid var(--warm);}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="data:image/png;base64,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" alt="LIVES">
+  <div class="divider"></div>
+  <div>
+    <div class="htitle">Subir arte de avíos</div>
+    <div class="hsub">Comercial, Logística y Calidad · lo que guardes aparece en el visor de artes</div>
+  </div>
+  <div class="hstate"><a id="lnkVisor" href="#">Ir al visor de artes →</a></div>
+</div>
+
+<div class="wrap">
+  <div class="aviso" id="aviso"></div>
+
+  <form id="form" autocomplete="off" novalidate>
+
+    <!-- 1. ARCHIVOS -->
+    <div class="card">
+      <span class="tira"></span>
+      <div class="pt">1. Archivos del arte</div>
+      <div class="ph">PDF, JPG o PNG · hasta <span id="txtMax"></span>. Sube juntos los archivos
+        de un mismo arte (por ejemplo, el layout y su hoja de datos). Un arte distinto va en otra carga.</div>
+      <div class="campo" data-id="archivos">
+        <div class="drop" id="drop" tabindex="0" role="button">
+          <div class="big">Arrastra aquí los archivos o toca para elegirlos</div>
+          <div class="sm">Tal como llegaron en el correo del proveedor</div>
+        </div>
+        <input type="file" id="fArchivos" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" style="display:none">
+        <div class="msg"></div>
+        <ul class="farchs" id="lista"></ul>
+      </div>
+    </div>
+
+    <!-- RECONOCIDO -->
+    <div class="card" id="cardReco" style="display:none">
+      <span class="tira neutra"></span>
+      <div class="pt">Lo que reconocí en los archivos</div>
+      <div class="ph">Lo puse en los campos que estaban vacíos, marcados en ámbar. <b>Revísalo antes de guardar</b>:
+        se lee del texto del PDF y del nombre del archivo, y puede equivocarse.</div>
+      <ul class="reco" id="reco"></ul>
+    </div>
+
+    <!-- 2. DATOS -->
+    <div class="card">
+      <span class="tira"></span>
+      <div class="pt">2. Datos del arte</div>
+      <div class="ph">Los campos con <span style="color:#DC2626">*</span> son obligatorios. Los códigos se guardan en MAYÚSCULAS.</div>
+
+      <div class="campo" data-id="item">
+        <label for="f_item">Item (código del producto) <span class="req">*</span><span class="tag">detectado · revisa</span></label>
+        <input id="f_item" class="up" maxlength="60" placeholder="Tal como viene en el correo">
+        <div class="msg"></div>
+        <div class="dup" id="dupItem"></div>
+      </div>
+
+      <div class="dos">
+        <div class="campo" data-id="cliente">
+          <label for="f_cliente">Cliente <span class="req">*</span><span class="tag">detectado · revisa</span></label>
+          <select id="f_cliente"></select>
+          <input id="o_cliente" class="otro up" maxlength="40" placeholder="Escribe el cliente">
+          <div class="msg"></div>
+        </div>
+        <div class="campo" data-id="proveedor">
+          <label for="f_proveedor">Proveedor <span class="req">*</span><span class="tag">detectado · revisa</span></label>
+          <select id="f_proveedor"></select>
+          <input id="o_proveedor" class="otro up" maxlength="40" placeholder="Escribe el proveedor">
+          <div class="msg"></div>
+        </div>
+      </div>
+
+      <div class="dos">
+        <div class="campo" data-id="tipo">
+          <label for="f_tipo">Tipo de avío <span class="req">*</span><span class="tag">detectado · revisa</span></label>
+          <select id="f_tipo"></select>
+          <input id="o_tipo" class="otro up" maxlength="50" placeholder="Escribe el tipo de avío">
+          <div class="msg"></div>
+          <div class="ayuda" id="ayudaTipo"></div>
+        </div>
+        <div class="campo" data-id="estado">
+          <label for="f_estado">Estado del arte <span class="req">*</span><span class="tag">detectado · revisa</span></label>
+          <select id="f_estado">
+            <option value="">— Elegir —</option>
+            <option value="POR APROBAR">Por aprobar (espera nuestro visto bueno)</option>
+            <option value="APROBADO">Aprobado</option>
+            <option value="RECHAZADO">Rechazado (se pidió corrección)</option>
+          </select>
+          <div class="msg"></div>
+          <div class="ayuda">Si el proveedor pide firma o visto bueno, es <b>Por aprobar</b>.</div>
+        </div>
+      </div>
+
+      <div class="dos">
+        <div class="campo" data-id="oc">
+          <label for="f_oc">N° OC de LIVES <span class="tag">detectado · revisa</span></label>
+          <input id="f_oc" class="up" maxlength="40" placeholder="Ej. 026-006850">
+          <div class="msg"></div>
+        </div>
+        <div class="campo" data-id="pedido">
+          <label for="f_pedido">Pedido <span class="tag">detectado · revisa</span></label>
+          <input id="f_pedido" class="up" maxlength="40" placeholder="Ej. EFI-134">
+          <div class="msg"></div>
+        </div>
+      </div>
+
+      <div class="campo" data-id="estilo">
+        <label for="f_estilo">Estilo(s) <span class="tag">detectado · revisa</span></label>
+        <input id="f_estilo" class="up" maxlength="200" placeholder="Si son varios, sepáralos con coma">
+        <div class="msg"></div>
+      </div>
+
+      <div class="campo" data-id="comentario">
+        <label for="f_comentario">Comentario</label>
+        <textarea id="f_comentario" maxlength="1000" placeholder="Ej. Revisar ancho: la cabecera dice 12 mm y el dibujo 13 mm"></textarea>
+        <div class="msg"></div>
+      </div>
+    </div>
+
+    <!-- 3. QUIÉN SUBE -->
+    <div class="card">
+      <span class="tira"></span>
+      <div class="pt">3. Quién sube</div>
+      <div class="ph">Queda registrado junto con la fecha y hora de carga.</div>
+      <div class="campo" data-id="area">
+        <label>Área <span class="req">*</span></label>
+        <div class="seg" id="segArea">
+          <button type="button" data-v="COMERCIAL">Comercial</button>
+          <button type="button" data-v="LOGÍSTICA">Logística</button>
+          <button type="button" data-v="CALIDAD">Calidad</button>
+        </div>
+        <div class="msg"></div>
+      </div>
+      <div class="campo" data-id="por">
+        <label for="f_por">Nombre y apellido <span class="req">*</span></label>
+        <input id="f_por" maxlength="60" placeholder="Ej. Ana Torres">
+        <div class="msg"></div>
+        <div class="ayuda">Se recuerda en este equipo para la próxima carga.</div>
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button type="submit" class="btn primary" id="btnGuardar">Guardar arte</button>
+      <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
+      <span id="estado"></span>
+    </div>
+  </form>
+
+  <div class="card exito" id="exito">
+    <div class="dot">✓</div>
+    <div class="t">Arte guardado</div>
+    <div class="s" id="exitoTxt">Ya aparece en el visor. No hace falta reenviar el correo.</div>
+    <div class="cod" id="codigo"></div>
+    <div class="acciones">
+      <a class="btn primary" id="lnkVerRegistro" href="#">Ver en el visor</a>
+      <button type="button" class="btn" id="btnOtro">Subir otro</button>
+    </div>
+  </div>
+
+  <details class="help">
+    <summary>¿Qué pasa con lo que subo?</summary>
+    <p><b>Una carga</b> es uno o más archivos de un mismo arte con sus datos. Recibe un código (ART-000123) que puedes citar.</p>
+    <p><b>Arte</b>: el diseño que el proveedor envía antes de fabricar el avío. <b>Avío</b>: etiquetas, stickers, hangtags y demás piezas que lleva la prenda.</p>
+    <p><b>Reconocimiento automático</b>: en los PDF se lee el texto y el nombre del archivo para proponer OC, pedido, estilo, cliente, proveedor, tipo y el sello APPROVED. Las fotos (JPG, PNG) no tienen texto legible: de ellas solo se usa el nombre del archivo. Nada se guarda sin que tú lo confirmes.</p>
+    <p><b>Si el item ya existe</b>, lo que subas queda como una carga nueva del mismo item; lo anterior no se borra. En el visor se ven todas las cargas del item, la más reciente primero.</p>
+    <p><b>Fecha</b>: se guarda la fecha y hora de carga, no la del documento, porque cada proveedor escribe la fecha en un formato distinto.</p>
+    <p><b>Si algo quedó mal</b>, se corrige desde el visor con "Editar datos"; queda registrado quién hizo cada cambio. Un registro subido por error se marca como <b>Anulado</b>: deja de verse, pero no se borra.</p>
+    <p><b>Si falla el envío</b>, el formulario queda lleno tal cual: vuelve a pulsar "Guardar arte". Los archivos que ya se subieron no se vuelven a subir.</p>
+  </details>
+</div>
+
+<script>
+/* ==========================================================================
+   SUBIR ARTE DE AVÍOS · LIVES
+   Solo se toca el bloque CFG. El backend (Apps Script) está comentado al final
+   de este archivo y también se entrega aparte como artes_backend.gs.
+   ========================================================================== */
+const CFG = {
+  endpoint   : "https://script.google.com/macros/s/AKfycbyJdkOWf67JnNEV4tmOuUUht-x4wERzdkljN48-EsPcx2gMZaHr4lEAkqgLW0qun6y1eA/exec",
+  visor      : "./",                // el visor es el index.html de la misma carpeta  // página del visor, en la misma carpeta de GitHub
+  maxArchivos: 10,
+  maxMB      : 15
+};
+
+/* Catálogo por defecto: se usa en modo prueba o si el servidor no responde.
+   Con el servidor conectado manda la hoja CATALOGOS. */
+const CAT_DEFECTO = {
+  clientes:[{v:"EFI",d:"Eileen Fisher"},{v:"PAK",d:"Paka"},{v:"THY",d:"Theory"},{v:"VINCE",d:"Vince"},
+            {v:"PERUVIAN",d:""},{v:"QUIMA",d:""},{v:"HELMUT LANG",d:""},{v:"STRAIGHT DOWN",d:""}],
+  proveedores:[{v:"ADESERV",d:""},{v:"AVERY DENNISON",d:""},{v:"CACOTEC",d:""},{v:"EMTIQUET",d:""},{v:"TRIMCO GROUP",d:"Portal Nexgen"}],
+  tipos:[{v:"ETIQUETA ID",d:""},{v:"ETIQUETA DE MARCA / TALLA",d:""},{v:"ETIQUETA DE COMPOSICIÓN Y CUIDADO",d:""},
+         {v:"STICKER DE TALLA / CÓDIGO",d:""},{v:"STICKER DE PRECIO",d:""},{v:"HANGTAG",d:""}]
+};
+const OTRO = "__OTRO__";
+
+let CAT = CAT_DEFECTO;
+let FILAS = [];            // registros existentes (para avisar duplicados)
+let ARCH = [];             // archivos elegidos: {uid,file,nombre,mime,kb,b64,texto,thumb,fileId,estado,nota}
+let SUGERIDOS = {};        // campos llenados por el reconocimiento y aún no tocados por la persona
+let AREA = "";
+let enviando = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+/* ---------------------------------------------------------------- servidor */
+async function apiGet(params){
+  const url = CFG.endpoint + "?" + new URLSearchParams(params).toString() + "&_=" + Date.now();
+  try{
+    const r = await fetch(url);
+    return await r.json();
+  }catch(e){
+    return await jsonp(url);
+  }
+}
+function jsonp(url){
+  return new Promise((res,rej)=>{
+    const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+    const s = document.createElement("script");
+    const t = setTimeout(()=>{ fin(); rej(new Error("El servidor no respondió.")); }, 60000);
+    function fin(){ clearTimeout(t); try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); }
+    window[cb] = d => { fin(); res(d); };
+    s.onerror = () => { fin(); rej(new Error("No se pudo conectar con el servidor.")); };
+    s.src = url + "&callback=" + cb;
+    document.head.appendChild(s);
+  });
+}
+async function apiPost(obj){
+  const r = await fetch(CFG.endpoint, { method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(obj) });
+  let j;
+  try{ j = await r.json(); }catch(_){ throw new Error("Respuesta inválida del servidor."); }
+  if(!j.ok) throw new Error(j.error || "El servidor rechazó la operación.");
+  return j;
+}
+
+/* ---------------------------------------------------------------- avisos y campos */
+function aviso(txt,tipo){ const a=$("aviso"); a.className="aviso"+(txt?" "+tipo:""); a.innerHTML=txt||""; }
+function marcar(id,msg){
+  const d=document.querySelector('.campo[data-id="'+id+'"]'); if(!d) return;
+  d.classList.toggle("malo",!!msg); const m=d.querySelector(".msg"); if(m) m.textContent=msg||"";
+}
+function sugerido(id,on){
+  const d=document.querySelector('.campo[data-id="'+id+'"]'); if(!d) return;
+  d.classList.toggle("sugerido",!!on);
+  if(on) SUGERIDOS[id]=true; else delete SUGERIDOS[id];
+}
+function llenarSelect(id, lista){
+  const el=$("f_"+id), prev=getCampo(id);
+  el.innerHTML='<option value="">— Elegir —</option>'+
+    lista.map(o=>'<option value="'+esc(o.v)+'">'+esc(o.v)+(id!=="tipo"&&o.d&&o.d.toUpperCase()!==o.v?" · "+esc(o.d):"")+'</option>').join("")+
+    '<option value="'+OTRO+'">Otro (escribir)</option>';
+  if(prev) setCampo(id, prev);
+}
+function ayudaTipo(){
+  const v=getCampo("tipo"), o=CAT.tipos.find(t=>t.v===v);
+  $("ayudaTipo").textContent=o&&o.d?o.d:"";
+}
+function setCampo(id, v){
+  const el=$("f_"+id); v=String(v||"");
+  if(el.tagName==="SELECT" && $("o_"+id)){
+    const hay=[...el.options].some(o=>o.value===v);
+    if(!v){ el.value=""; $("o_"+id).value=""; }
+    else if(hay){ el.value=v; $("o_"+id).value=""; }
+    else { el.value=OTRO; $("o_"+id).value=v; }
+    $("o_"+id).style.display = el.value===OTRO ? "block" : "none";
+    if(id==="tipo") ayudaTipo();
+  }else el.value=v;
+}
+function getCampo(id){
+  const el=$("f_"+id); if(!el) return "";
+  if(el.tagName==="SELECT" && $("o_"+id)) return el.value===OTRO ? $("o_"+id).value.trim().toUpperCase() : el.value;
+  return el.value.trim();
+}
+["cliente","proveedor","tipo"].forEach(id=>{
+  $("f_"+id).addEventListener("change",()=>{
+    $("o_"+id).style.display = $("f_"+id).value===OTRO ? "block" : "none";
+    if($("f_"+id).value===OTRO) $("o_"+id).focus();
+    if(id==="tipo") ayudaTipo();
+    sugerido(id,false); marcar(id,"");
+  });
+  $("o_"+id).addEventListener("input",()=>{ sugerido(id,false); marcar(id,""); });
+});
+["item","estado","oc","pedido","estilo","comentario","por"].forEach(id=>{
+  $("f_"+id).addEventListener("input",()=>{ sugerido(id,false); marcar(id,""); if(id==="item") avisarDuplicado(); });
+  $("f_"+id).addEventListener("change",()=>{ sugerido(id,false); marcar(id,""); });
+});
+document.querySelectorAll("#segArea button").forEach(b=>{
+  b.onclick=()=>{ AREA=b.dataset.v; pintarArea(); marcar("area",""); recordar(); };
+});
+function pintarArea(){ document.querySelectorAll("#segArea button").forEach(b=>b.classList.toggle("active",b.dataset.v===AREA)); }
+$("f_por").addEventListener("change",recordar);
+function recordar(){ try{ localStorage.setItem("artes_nombre",$("f_por").value.trim()); localStorage.setItem("artes_area",AREA); }catch(_){ } }
+function recuperar(){ try{ $("f_por").value=localStorage.getItem("artes_nombre")||""; AREA=localStorage.getItem("artes_area")||""; pintarArea(); }catch(_){ } }
+
+/* ---------------------------------------------------------------- archivos */
+const kbTxt = kb => kb>=1024 ? (kb/1024).toLocaleString("es-PE",{maximumFractionDigits:1})+" MB" : kb.toLocaleString("es-PE")+" KB";
+const drop=$("drop"), inp=$("fArchivos");
+drop.onclick=()=>inp.click();
+drop.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); inp.click(); } };
+drop.ondragover=e=>{ e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave=()=>drop.classList.remove("over");
+drop.ondrop=e=>{ e.preventDefault(); drop.classList.remove("over"); agregar(e.dataTransfer.files); };
+inp.onchange=()=>{ agregar(inp.files); inp.value=""; };
+
+function tipoDe(f){
+  const n=f.name.toLowerCase();
+  if(f.type==="application/pdf"||n.endsWith(".pdf")) return "application/pdf";
+  if(f.type==="image/png"||n.endsWith(".png")) return "image/png";
+  if(f.type==="image/jpeg"||/\.jpe?g$/.test(n)) return "image/jpeg";
+  return "";
+}
+async function agregar(files){
+  if(enviando) return;
+  marcar("archivos","");
+  const rechazos=[];
+  for(const f of [...files]){
+    const mime=tipoDe(f);
+    if(!mime){ rechazos.push(f.name+": solo PDF, JPG o PNG"); continue; }
+    if(f.size>CFG.maxMB*1048576){ rechazos.push(f.name+": pasa de "+CFG.maxMB+" MB"); continue; }
+    if(ARCH.length>=CFG.maxArchivos){ rechazos.push(f.name+": máximo "+CFG.maxArchivos+" archivos por carga"); continue; }
+    if(ARCH.some(a=>a.nombre===f.name && a.file.size===f.size)){ rechazos.push(f.name+": ya está en la lista"); continue; }
+    ARCH.push({uid:Math.random().toString(36).slice(2), file:f, nombre:f.name, mime:mime,
+               kb:Math.max(1,Math.round(f.size/1024)), b64:"", texto:"", thumb:"", fileId:"", estado:"leyendo", nota:""});
+  }
+  if(rechazos.length) marcar("archivos","No se agregaron: "+rechazos.join(" · "));
+  pintarLista();
+  for(const a of ARCH.filter(x=>x.estado==="leyendo")){
+    try{ await leerArchivo(a); a.estado="listo"; }
+    catch(err){ a.estado="listo"; a.nota="No se pudo leer el texto (se sube igual)"; }
+    pintarLista();
+  }
+  reconocer();
+}
+function leerDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); }); }
+function leerBuffer(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsArrayBuffer(f); }); }
+
+async function leerArchivo(a){
+  const dataUrl=await leerDataURL(a.file);
+  a.b64=dataUrl.slice(dataUrl.indexOf(",")+1);
+  if(a.mime==="application/pdf"){
+    if(!window.pdfjsLib){ a.nota="No se cargó el lector de PDF: el texto no se reconoce (se sube igual)"; return; }
+    const buf=await leerBuffer(a.file);
+    const doc=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    const partes=[];
+    for(let p=1;p<=Math.min(doc.numPages,30);p++){
+      const pg=await doc.getPage(p);
+      const tc=await pg.getTextContent();
+      partes.push(tc.items.map(i=>i.str).join(" "));
+      if(p===1) a.thumb=await miniaturaPDF(pg);
+    }
+    a.texto=partes.join("\n");
+    a.paginas=doc.numPages;
+    if(!a.texto.trim()) a.nota="PDF sin texto legible (es una imagen): los datos van a mano";
+  }else{
+    a.thumb=await miniaturaImagen(a.file);
+    a.nota="Foto: no tiene texto legible, solo se usa el nombre del archivo";
+  }
+}
+function canvasAJpeg(cv){
+  let q=0.62, url=cv.toDataURL("image/jpeg",q);
+  while(url.length>45000 && q>0.25){ q-=0.12; url=cv.toDataURL("image/jpeg",q); }
+  return url.length>45000 ? "" : url;
+}
+async function miniaturaPDF(page){
+  const v1=page.getViewport({scale:1}), esc2=260/v1.width, vp=page.getViewport({scale:esc2});
+  const cv=document.createElement("canvas"); cv.width=Math.round(vp.width); cv.height=Math.round(vp.height);
+  const cx=cv.getContext("2d"); cx.fillStyle="#fff"; cx.fillRect(0,0,cv.width,cv.height);
+  await page.render({canvasContext:cx, viewport:vp}).promise;
+  return canvasAJpeg(cv);
+}
+function miniaturaImagen(file){
+  return new Promise(res=>{
+    const url=URL.createObjectURL(file), im=new Image();
+    im.onload=()=>{
+      const w=260, h=Math.round(im.height*w/im.width);
+      const cv=document.createElement("canvas"); cv.width=w; cv.height=Math.min(h,520);
+      const cx=cv.getContext("2d"); cx.fillStyle="#fff"; cx.fillRect(0,0,cv.width,cv.height);
+      cx.drawImage(im,0,0,w,h); URL.revokeObjectURL(url); res(canvasAJpeg(cv));
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); res(""); };
+    im.src=url;
+  });
+}
+function duplicadoArchivo(a){
+  for(const r of FILAS){
+    if(r.estado==="ANULADO") continue;
+    if((r.archivos||[]).some(x=>x.nombre===a.nombre && Number(x.kb)===a.kb)) return r.id;
+  }
+  return "";
+}
+function pintarLista(){
+  const ul=$("lista");
+  ul.innerHTML=ARCH.map(a=>{
+    const ext=a.mime==="application/pdf"?"PDF":(a.mime==="image/png"?"PNG":"JPG");
+    const dup=duplicadoArchivo(a);
+    let sub, cls="sub";
+    if(a.estado==="leyendo"){ sub="Leyendo…"; }
+    else if(a.estado==="subiendo"){ sub="Subiendo…"; cls+=" warn"; }
+    else if(a.estado==="error"){ sub="No se subió: "+a.nota; cls+=" mal"; }
+    else if(a.fileId){ sub="Subido ✓"; cls+=" ok"; }
+    else { sub=kbTxt(a.kb)+(a.paginas?" · "+a.paginas+" pág.":"")+(a.nota?" · "+a.nota:""); }
+    const dupTxt = dup && !a.fileId ? '<div class="sub warn">Ya se subió un archivo con este nombre y tamaño ('+esc(dup)+')</div>' : "";
+    return '<li><div class="ext">'+(a.thumb?'<img src="'+a.thumb+'" alt="">':ext)+'</div>'+
+      '<div><div class="nm">'+esc(a.nombre)+'</div><div class="'+cls+'">'+esc(sub)+'</div>'+dupTxt+'</div>'+
+      '<button type="button" class="quitar" data-uid="'+a.uid+'" aria-label="Quitar" '+(enviando?"disabled":"")+'>✕</button></li>';
+  }).join("");
+  ul.querySelectorAll(".quitar").forEach(b=>b.onclick=()=>{
+    ARCH=ARCH.filter(a=>a.uid!==b.dataset.uid); pintarLista(); reconocer();
+  });
+}
+
+/* ---------------------------------------------------------------- reconocimiento */
+/* === DETECCIÓN (se copia tal cual al HTML de carga) === */
+function detectarDatos(textos, nombres, CAT){
+  // textos: array de textos de PDF; nombres: array de nombres de archivo
+  var T = (textos||[]).join('\n').toUpperCase();
+  var N = (nombres||[]).join('\n').toUpperCase().replace(/_/g,' ').replace(/\.(PDF|JPE?G|PNG)\b/g,' ');
+  var TODO = T + '\n' + N;
+  function contar(re, s){ var m=s.match(re); return m?m.length:0; }
+  function topDe(mapa){ var k=Object.keys(mapa).sort(function(a,b){return mapa[b]-mapa[a];}); return k; }
+  var r = {oc:[], pedido:[], estilo:[], item:[], cliente:'', proveedor:'', estado:'', tipo:'', codigos:''};
+
+  // N° OC: primero el texto del documento; el nombre del archivo solo si el texto no trae ninguna
+  function ocs(s){
+    var m={}, re=/(?:^|[^0-9A-Z])(0?26)\s*[-–]\s*(\d{4,6})(?![0-9])/g, x;
+    while((x=re.exec(s))){ var v=x[1]+'-'+x[2]; m[v]=(m[v]||0)+1; }
+    return topDe(m);
+  }
+  r.oc = ocs(T); if(!r.oc.length) r.oc = ocs(N);
+
+  // Pedido tipo EFI-134 / HEL-195 / VIN-591
+  var mp={}, rp=/(?:^|[^A-Z0-9])([A-Z]{3})\s*-\s*(\d{3})(?![0-9])/g, y;
+  while((y=rp.exec(TODO))){ var pv=y[1]+'-'+y[2]; mp[pv]=(mp[pv]||0)+1; }
+  r.pedido = topDe(mp);
+
+  // Estilos rotulados como STYLE
+  var me={}, re2=/STYLE\s*(?:#|NO\.?)?\s*:?\s*([A-Z0-9][A-Z0-9\-]{4,})/g, z;
+  while((z=re2.exec(T))){ if(/\d/.test(z[1])){ me[z[1]]=(me[z[1]]||0)+1; } }
+  r.estilo = topDe(me).slice(0,4);
+
+  // Código de producto del proveedor
+  var mi={}, ri=/(?:ITEM\s*(?:CODE)?\s*#?|PRODUCT\s*CODE)\s*:?\s*([A-Z0-9][A-Z0-9_\-]{3,})/g, w;
+  while((w=ri.exec(T))){ if(/\d/.test(w[1])){ mi[w[1]]=(mi[w[1]]||0)+1; } }
+  r.item = topDe(mi);
+
+  // Cliente
+  var reglasCli = [
+    ['EFI', /\bEFI\b|EILEEN\s*FISHER/g], ['VINCE', /(?:^|[^A-Z])VINCE|\bVIN\s*-\s*\d/g],
+    ['THY', /THEORY/g], ['HELMUT LANG', /HELMUT\s*LANG|\bHEL\s*-\s*\d/g],
+    ['PAK', /\bPAKA\b/g], ['QUIMA', /\bQUIMA\b/g], ['PERUVIAN', /\bPERUVIAN\b/g],
+    ['STRAIGHT DOWN', /STRAIG(?:HT|TH)\s*DOWN/g]
+  ];
+  var mc={}; reglasCli.forEach(function(rg){ var n=contar(rg[1],TODO); if(n) mc[rg[0]]=n; });
+  var cands = topDe(mc).filter(function(v){ return !CAT || CAT.clientes.some(function(c){return c.v===v;}); });
+  r.cliente = cands[0]||'';
+
+  // Proveedor
+  var reglasProv = [['ADESERV',/ADESERV/g],['AVERY',/AVERY\s*DENNISON/g],['CACOTEC',/CACOTEC/g],
+                    ['EMTIQUET',/EMTIQUET/g],['TRIMCO',/TRIMCO|NEXGEN/g]];
+  var mv={}; reglasProv.forEach(function(rg){ var n=contar(rg[1],TODO); if(n) mv[rg[0]]=n; });
+  var pk = topDe(mv)[0];
+  if(pk){
+    var hit = CAT ? CAT.proveedores.filter(function(p){return p.v.indexOf(pk)>-1;})[0] : {v:pk};
+    r.proveedor = hit ? hit.v : '';
+  }
+
+  // Estado: solo el sello en inglés. "ARTE APROBADO" de las casillas de Adeserv NO cuenta.
+  if(/\bAP(?:PR|RR)OVED\b/.test(TODO)) r.estado='APROBADO';
+
+  // Tipo de avío
+  var reglasTipo = [
+    ['STICKER DE PRECIO', /RETAIL\s*PRICE|PRC\s*-\s*STKR|PRICE\s*STICKER/],
+    ['STICKER DE TALLA / CÓDIGO', /\bSTKR?\b|STICKER/],
+    ['ETIQUETA DE COMPOSICIÓN Y CUIDADO', /CARE\s*(?:CODE|INSTRUCTION|LAYOUT|LABEL)|MACHINE\s*WASH/],
+    ['HANGTAG', /HANG\s*TAG|TICKETPROJECTS|\bTICKET\b/],
+    ['ETIQUETA ID', /\bID\s*LABEL\b/]
+  ];
+  for(var i=0;i<reglasTipo.length;i++){
+    if(reglasTipo[i][1].test(TODO)){
+      var tv=reglasTipo[i][0];
+      if(!CAT || CAT.tipos.some(function(t){return t.v===tv;})) { r.tipo=tv; break; }
+    }
+  }
+
+  // Códigos para el buscador (tokens con al menos un dígito)
+  var set={}, lista=[], rt=/[A-Z0-9][A-Z0-9_\-\/\.#]{3,38}[A-Z0-9]/g, q;
+  while((q=rt.exec(TODO))){ var tk=q[0]; if(/\d/.test(tk)&&/[A-Z]/.test(tk)||/^\d{5,}$/.test(tk)){ if(!set[tk]){set[tk]=1; lista.push(tk);} } }
+  r.codigos = lista.join(' ').slice(0,5000);
+  return r;
+}
+
+function reconocer(){
+  const listos=ARCH.filter(a=>a.estado!=="leyendo");
+  if(!listos.length){ $("cardReco").style.display="none"; limpiarSugeridos(); return; }
+  const r=detectarDatos(listos.map(a=>a.texto), listos.map(a=>a.nombre), CAT);
+  const filas=[];
+  function proponer(id, valor, etiqueta, otros){
+    if(!valor) return;
+    filas.push('<li><span>'+etiqueta+'</span><span>'+esc(valor)+
+      (otros&&otros.length?' <span class="otros">· también aparece: '+esc(otros.join(", "))+'</span>':'')+'</span></li>');
+    const actual=getCampo(id);
+    if(!actual || SUGERIDOS[id]){ setCampo(id, valor); sugerido(id,true); marcar(id,""); }
+  }
+  proponer("item", r.item[0], "Item", r.item.slice(1));
+  proponer("cliente", r.cliente, "Cliente");
+  proponer("proveedor", r.proveedor, "Proveedor");
+  proponer("tipo", r.tipo, "Tipo de avío");
+  if(r.estado) proponer("estado", r.estado, "Estado");
+  proponer("oc", r.oc[0], "N° OC", r.oc.slice(1));
+  proponer("pedido", r.pedido[0], "Pedido", r.pedido.slice(1));
+  proponer("estilo", r.estilo.join(", "), "Estilo(s)");
+  // Campos sugeridos antes que esta vez ya no se reconocen: se vacían
+  const vistos={item:r.item[0],cliente:r.cliente,proveedor:r.proveedor,tipo:r.tipo,estado:r.estado,oc:r.oc[0],pedido:r.pedido[0],estilo:r.estilo.join(", ")};
+  Object.keys(SUGERIDOS).forEach(id=>{ if(!vistos[id]){ setCampo(id,""); sugerido(id,false); } });
+  if(!r.item[0]) filas.push('<li><span>Item</span><span class="otros">No encontré el código del producto: escríbelo tal como viene en el correo.</span></li>');
+  if(!r.estado) filas.push('<li><span>Estado</span><span class="otros">No hay sello APPROVED en los archivos: elige el estado a mano.</span></li>');
+  const soloFotos=listos.every(a=>a.mime!=="application/pdf");
+  if(!filas.length || soloFotos && filas.length<=1){
+    filas.push('<li><span>Nota</span><span class="otros">'+(soloFotos?"Las fotos no tienen texto legible: completa los datos a mano.":"No encontré datos reconocibles: completa los campos a mano.")+'</span></li>');
+  }
+  $("reco").innerHTML=filas.join("");
+  $("cardReco").style.display="";
+  avisarDuplicado();
+}
+function limpiarSugeridos(){ Object.keys(SUGERIDOS).forEach(id=>{ setCampo(id,""); sugerido(id,false); }); }
+
+function avisarDuplicado(){
+  const it=getCampo("item").toUpperCase().replace(/\s+/g," "), box=$("dupItem");
+  if(!it){ box.style.display="none"; return; }
+  const mismas=FILAS.filter(r=>r.item===it && r.estado!=="ANULADO")
+    .sort((a,b)=>(b.fecha+b.id).localeCompare(a.fecha+a.id));
+  if(!mismas.length){ box.style.display="none"; return; }
+  const u=mismas[0];
+  box.innerHTML="Este item ya tiene <b>"+mismas.length+" carga"+(mismas.length>1?"s":"")+"</b> en el visor "+
+    "(la última: "+esc(fechaTxt(u.fecha))+" · "+esc(estadoTxt(u.estado))+(u.oc?" · OC "+esc(u.oc):"")+"). "+
+    "Lo que subas se guarda como carga nueva; lo anterior no se borra.";
+  box.style.display="block";
+}
+function fechaTxt(f){ const m=/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}:\d{2}))?/.exec(f||""); return m?m[3]+"/"+m[2]+"/"+m[1]+(m[4]?" "+m[4]:""):(f||""); }
+function estadoTxt(e){ return ({"POR APROBAR":"Por aprobar","APROBADO":"Aprobado","RECHAZADO":"Rechazado","ANULADO":"Anulado"})[e]||e; }
+
+/* ---------------------------------------------------------------- validación y envío */
+function validar(){
+  let ok=true;
+  const d={
+    item:getCampo("item").toUpperCase(), cliente:getCampo("cliente"), proveedor:getCampo("proveedor"),
+    tipo:getCampo("tipo"), estado:getCampo("estado"), oc:getCampo("oc").toUpperCase(),
+    pedido:getCampo("pedido").toUpperCase(), estilo:getCampo("estilo").toUpperCase(),
+    comentario:getCampo("comentario"), area:AREA, por:getCampo("por")
+  };
+  ["archivos","item","cliente","proveedor","tipo","estado","area","por"].forEach(id=>marcar(id,""));
+  if(!ARCH.length){ marcar("archivos","Agrega al menos un archivo."); ok=false; }
+  else if(ARCH.some(a=>a.estado==="leyendo")){ marcar("archivos","Espera a que terminen de leerse los archivos."); ok=false; }
+  if(!d.item){ marcar("item","Escribe el código del producto."); ok=false; }
+  [["cliente","Elige el cliente."],["proveedor","Elige el proveedor."],["tipo","Elige el tipo de avío."]].forEach(([id,m])=>{
+    if($("f_"+id).value===OTRO && !d[id]) { marcar(id,"Escribe el valor en la casilla de abajo."); ok=false; }
+    else if(!d[id]){ marcar(id,m); ok=false; }
+  });
+  if(!d.estado){ marcar("estado","Elige el estado del arte."); ok=false; }
+  if(!d.area){ marcar("area","Elige tu área."); ok=false; }
+  if(!d.por){ marcar("por","Escribe tu nombre y apellido."); ok=false; }
+  else if(!/\S+\s+\S+/.test(d.por)){ marcar("por","Escribe también tu apellido."); ok=false; }
+  return ok?d:null;
+}
+
+$("form").onsubmit=async e=>{
+  e.preventDefault();
+  if(enviando) return;
+  aviso("");
+  const d=validar();
+  if(!d){ aviso("Revisa los campos marcados en rojo.","error"); const m=document.querySelector(".campo.malo"); if(m) m.scrollIntoView({behavior:"smooth",block:"center"}); return; }
+  enviando=true; $("btnGuardar").disabled=true; $("btnLimpiar").disabled=true;
+  try{
+    if(!CFG.endpoint){
+      $("estado").textContent="Simulando…";
+      await new Promise(r=>setTimeout(r,700));
+      terminar("MODO-PRUEBA", true);
+      return;
+    }
+    const pend=ARCH.filter(a=>!a.fileId);
+    for(let i=0;i<pend.length;i++){
+      const a=pend[i];
+      a.estado="subiendo"; pintarLista();
+      $("estado").textContent="Subiendo archivo "+(i+1)+" de "+pend.length+"…";
+      try{
+        const j=await apiPost({accion:"subir", nombre:a.nombre, mime:a.mime, b64:a.b64, item:d.item, por:d.por});
+        a.fileId=j.id; a.estado="listo"; a.nota="";
+      }catch(err){
+        a.estado="error"; a.nota=err.message; pintarLista();
+        throw new Error("no se pudo subir "+a.nombre+" ("+err.message+")");
+      }
+      pintarLista();
+    }
+
+    $("estado").textContent="Registrando…";
+    const conThumb=ARCH.find(a=>a.thumb);
+    const codigos=detectarDatos(ARCH.map(a=>a.texto), ARCH.map(a=>a.nombre), null).codigos;
+    const j=await apiPost({accion:"registrar", datos:d,
+      archivos:ARCH.map(a=>({id:a.fileId, nombre:a.nombre, mime:a.mime, kb:a.kb})),
+      mini: conThumb?conThumb.thumb:"", codigos:codigos});
+    terminar(j.id, false);
+  }catch(err){
+    aviso("No se pudo guardar: "+esc(String(err.message).replace(/\.+$/,""))+". Lo que escribiste sigue aquí; revisa tu conexión y vuelve a pulsar <b>Guardar arte</b>. "+
+          "Los archivos que ya dicen “Subido ✓” no se vuelven a subir.","error");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }finally{
+    enviando=false; $("btnGuardar").disabled=false; $("btnLimpiar").disabled=false; $("estado").textContent="";
+    pintarLista();
+  }
+};
+
+function terminar(id, prueba){
+  $("form").style.display="none";
+  $("exito").style.display="block";
+  $("codigo").textContent="Código del registro: "+id;
+  if(prueba){
+    $("exitoTxt").textContent="Modo prueba: no hay servidor configurado, así que no se subió ni se guardó nada.";
+    $("lnkVerRegistro").href=CFG.visor;
+  }else{
+    $("exitoTxt").textContent="Ya aparece en el visor. No hace falta reenviar el correo.";
+    $("lnkVerRegistro").href=CFG.visor+"#"+encodeURIComponent(id);
+    const t=new Date(), p2=n=>String(n).padStart(2,"0");
+    const ahora=t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())+" "+p2(t.getHours())+":"+p2(t.getMinutes());
+    FILAS.push({id:id, item:getCampo("item").toUpperCase(), estado:getCampo("estado"), fecha:ahora, oc:getCampo("oc").toUpperCase(),
+                archivos:ARCH.map(a=>({nombre:a.nombre,kb:a.kb}))});
+  }
+  aviso("");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function limpiar(){
+  ARCH=[]; SUGERIDOS={};
+  ["item","oc","pedido","estilo","comentario"].forEach(id=>{ $("f_"+id).value=""; });
+  ["cliente","proveedor","tipo","estado"].forEach(id=>setCampo(id,""));
+  document.querySelectorAll(".campo").forEach(c=>c.classList.remove("malo","sugerido"));
+  $("cardReco").style.display="none"; $("dupItem").style.display="none";
+  pintarLista(); recuperar();
+}
+$("btnLimpiar").onclick=()=>{ if(!enviando){ limpiar(); aviso(CFG.endpoint?"":AVISO_PRUEBA,"info"); } };
+$("btnOtro").onclick=()=>{ $("exito").style.display="none"; $("form").style.display=""; limpiar(); aviso(CFG.endpoint?"":AVISO_PRUEBA,"info"); };
+
+/* ---------------------------------------------------------------- inicio */
+const AVISO_PRUEBA="<b>Modo prueba:</b> falta configurar la dirección del servidor (CFG.endpoint). "+
+  "Puedes probar el reconocimiento con tus archivos; al guardar no se sube nada.";
+$("txtMax").textContent=CFG.maxArchivos+" archivos de "+CFG.maxMB+" MB cada uno";
+$("lnkVisor").href=CFG.visor;
+llenarSelect("cliente",CAT.clientes); llenarSelect("proveedor",CAT.proveedores); llenarSelect("tipo",CAT.tipos);
+recuperar();
+(async function(){
+  if(!CFG.endpoint){ aviso(AVISO_PRUEBA,"info"); return; }
+  if(!window.pdfjsLib) aviso("No se pudo cargar el lector de PDF: puedes subir igual, pero los datos no se reconocerán solos.","info");
+  try{
+    const j=await apiGet({accion:"listar"});
+    if(!j.ok) throw new Error(j.error||"");
+    FILAS=j.filas||[];
+    if(j.catalogos && j.catalogos.clientes && j.catalogos.clientes.length){
+      CAT=j.catalogos;
+      llenarSelect("cliente",CAT.clientes); llenarSelect("proveedor",CAT.proveedores); llenarSelect("tipo",CAT.tipos);
+    }
+    pintarLista(); avisarDuplicado();
+  }catch(err){
+    aviso("No se pudo leer lo ya cargado ("+esc(err.message||"sin conexión")+"). Puedes subir igual; solo no se avisará si el item ya existe.","info");
+  }
+})();
+</script>
+
+<!--
+BACKEND — es el mismo contenido que artes_backend_v2.gs. Instrucciones de instalación al inicio.
+
+/* =============================================================================
+   LIVES · ARTES DE AVÍOS — BACKEND (Google Apps Script)
+   Guarda los archivos en una carpeta de Drive y los datos en esta hoja.
+
+   INSTALACIÓN (una sola vez)
+   1. Crear una Google Sheet nueva llamada "LIVES · Artes de avíos"
+      (idealmente en una cuenta de LIVES administrada por Sistemas, no personal:
+      los archivos ocupan el espacio de Drive de esa cuenta).
+   2. Extensiones → Apps Script → borrar lo que haya y pegar TODO este archivo.
+   3. Guardar. Elegir la función "configurar" arriba y pulsar Ejecutar.
+      Aceptar los permisos (Sheets y Drive). Crea las hojas y la carpeta.
+   4. Implementar → Nueva implementación → tipo "Aplicación web"
+      Ejecutar como: Yo · Quién tiene acceso: Cualquier usuario → Implementar.
+   5. Copiar la URL que termina en /exec y pegarla en CFG.endpoint de
+      index.html (visor) y de subir_arte.html (carga).
+
+   ACCESO ABIERTO: quien tenga el enlace puede subir y editar. Cada carga guarda área
+   y nombre, cada edición queda en HISTORIAL, y nada se borra (anular solo oculta).
+
+   SI CAMBIAS ESTE CÓDIGO DESPUÉS
+   Implementar → Gestionar implementaciones → lápiz → Versión: "Nueva versión"
+   → Implementar. Así la URL /exec sigue siendo la misma. Si creas una
+   implementación nueva, cambia la URL y hay que actualizar los dos HTML.
+   ============================================================================= */
+
+const ZONA           = 'America/Lima';
+const NOMBRE_CARPETA = 'LIVES · Artes de avíos';
+const MAX_MB         = 15;
+
+const H_ARTES = 'ARTES';
+const H_HIST  = 'HISTORIAL';
+const H_CAT   = 'CATALOGOS';
+
+const COLS = ['ID','FECHA_CARGA','AREA','SUBIDO_POR','ITEM','CLIENTE','PROVEEDOR','TIPO_AVIO',
+              'OC','PEDIDO','ESTILO','ESTADO','COMENTARIO','ARCHIVOS','NOMBRES_ARCHIVO',
+              'CODIGOS_DETECTADOS','MINIATURA','ULTIMA_EDICION'];
+const C = {}; COLS.forEach(function(n,i){ C[n] = i + 1; });   // número de columna (1 = A)
+
+const ESTADOS = ['POR APROBAR','APROBADO','RECHAZADO','ANULADO'];
+const AREAS   = ['COMERCIAL','LOGÍSTICA','CALIDAD'];
+const EDITABLES = { item:'ITEM', cliente:'CLIENTE', proveedor:'PROVEEDOR', tipo:'TIPO_AVIO',
+                    oc:'OC', pedido:'PEDIDO', estilo:'ESTILO', estado:'ESTADO', comentario:'COMENTARIO' };
+const MIMES = ['application/pdf','image/jpeg','image/png'];
+
+const CATALOGO_INICIAL = [
+  ['CLIENTE','EFI','Eileen Fisher'],
+  ['CLIENTE','PAK','Paka'],
+  ['CLIENTE','THY','Theory'],
+  ['CLIENTE','VINCE','Vince'],
+  ['CLIENTE','PERUVIAN',''],
+  ['CLIENTE','QUIMA',''],
+  ['CLIENTE','HELMUT LANG',''],
+  ['CLIENTE','STRAIGHT DOWN',''],
+  ['PROVEEDOR','ADESERV',''],
+  ['PROVEEDOR','AVERY DENNISON',''],
+  ['PROVEEDOR','CACOTEC',''],
+  ['PROVEEDOR','EMTIQUET',''],
+  ['PROVEEDOR','TRIMCO GROUP','Portal Nexgen'],
+  ['TIPO','ETIQUETA ID','Identifica producto, estilo o PO dentro de la prenda'],
+  ['TIPO','ETIQUETA DE MARCA / TALLA',''],
+  ['TIPO','ETIQUETA DE COMPOSICIÓN Y CUIDADO','Fibra, país de origen e instrucciones de lavado'],
+  ['TIPO','STICKER DE TALLA / CÓDIGO','Adhesivo con talla y código de barras'],
+  ['TIPO','STICKER DE PRECIO','Adhesivo con precio de venta sugerido'],
+  ['TIPO','HANGTAG','Etiqueta colgante de cartón']
+];
+
+/* ------------------------------------------------------------------ INSTALACIÓN */
+function configurar(){
+  hoja_(H_ARTES, COLS);
+  hoja_(H_HIST, ['FECHA','ID','CAMPO','ANTES','DESPUES','EDITADO_POR']);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let cat = ss.getSheetByName(H_CAT);
+  if(!cat){
+    cat = ss.insertSheet(H_CAT);
+    cat.getRange(1,1,1,3).setValues([['TIPO','VALOR','DESCRIPCION']]).setFontWeight('bold');
+    cat.getRange(2,1,CATALOGO_INICIAL.length,3).setNumberFormat('@').setValues(CATALOGO_INICIAL);
+    cat.setFrozenRows(1);
+    cat.setColumnWidth(2, 260); cat.setColumnWidth(3, 360);
+  }
+  const carpeta = carpeta_();
+  Logger.log('Listo. Carpeta de archivos: ' + carpeta.getUrl());
+}
+
+/* ------------------------------------------------------------------ LECTURA */
+function doGet(e){
+  const p = (e && e.parameter) || {};
+  let r;
+  try{
+    const a = p.accion || 'ping';
+    if(a === 'listar')       r = listar_();
+    else if(a === 'minis')   r = minis_(String(p.ids || ''), String(p.filas || ''));
+    else if(a === 'archivo') r = archivo_(String(p.id || ''));
+    else                     r = { ok:true, vivo:true };
+  }catch(err){
+    r = { ok:false, error: String(err && err.message || err) };
+  }
+  return salida_(r, p.callback);
+}
+
+function listar_(){
+  const sh = hoja_(H_ARTES, COLS);
+  const n = sh.getLastRow();
+  const filas = [];
+  if(n >= 2){
+    // Se leen todas las columnas menos MINIATURA (pesa mucho); las miniaturas van aparte.
+    const a = sh.getRange(2, 1, n - 1, C.CODIGOS_DETECTADOS).getDisplayValues();
+    const b = sh.getRange(2, C.ULTIMA_EDICION, n - 1, 1).getDisplayValues();
+    for(let i = 0; i < a.length; i++){
+      const v = a[i].map(limpio_);
+      if(!v[0]) continue;
+      let archivos = [];
+      try{ archivos = JSON.parse(v[C.ARCHIVOS - 1] || '[]'); }catch(_){ archivos = []; }
+      filas.push({
+        fila: i + 2, id: v[0], fecha: v[1], area: v[2], por: v[3], item: v[4], cliente: v[5],
+        proveedor: v[6], tipo: v[7], oc: v[8], pedido: v[9], estilo: v[10], estado: v[11],
+        comentario: v[12], archivos: archivos, codigos: v[C.CODIGOS_DETECTADOS - 1],
+        editado: limpio_(b[i][0])
+      });
+    }
+  }
+  return { ok:true, filas: filas, catalogos: catalogos_(),
+           servidor: Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm') };
+}
+
+function catalogos_(){
+  const out = { clientes:[], proveedores:[], tipos:[], estados: ESTADOS, areas: AREAS };
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(H_CAT);
+  if(!sh || sh.getLastRow() < 2) return out;
+  sh.getRange(2, 1, sh.getLastRow() - 1, 3).getDisplayValues().forEach(function(r){
+    const t = String(r[0]).trim().toUpperCase(), v = up_(r[1]), d = String(r[2]).trim();
+    if(!v) return;
+    if(t === 'CLIENTE')   out.clientes.push({ v:v, d:d });
+    if(t === 'PROVEEDOR') out.proveedores.push({ v:v, d:d });
+    if(t === 'TIPO')      out.tipos.push({ v:v, d:d });
+  });
+  return out;
+}
+
+function minis_(idsTxt, filasTxt){
+  const ids = idsTxt.split(',').filter(String).slice(0, 60);
+  const filas = filasTxt.split(',').map(Number).filter(function(x){ return x >= 2; }).slice(0, 60);
+  const out = {};
+  if(!ids.length || !filas.length) return { ok:true, minis: out };
+  const sh = hoja_(H_ARTES, COLS);
+  const quiere = {}; ids.forEach(function(x){ quiere[x] = true; });
+  const min = Math.min.apply(null, filas), max = Math.min(Math.max.apply(null, filas), sh.getLastRow());
+  if(max < min) return { ok:true, minis: out };
+  if(max - min <= 300){
+    const idCol = sh.getRange(min, C.ID, max - min + 1, 1).getDisplayValues();
+    const miCol = sh.getRange(min, C.MINIATURA, max - min + 1, 1).getDisplayValues();
+    for(let i = 0; i < idCol.length; i++){
+      if(quiere[idCol[i][0]] && miCol[i][0]) out[idCol[i][0]] = miCol[i][0];
+    }
+  }else{
+    filas.forEach(function(f){
+      if(f > sh.getLastRow()) return;
+      const id = sh.getRange(f, C.ID).getDisplayValue();
+      if(!quiere[id]) return;
+      const m = sh.getRange(f, C.MINIATURA).getDisplayValue();
+      if(m) out[id] = m;
+    });
+  }
+  return { ok:true, minis: out };
+}
+
+function archivo_(id){
+  if(!/^[\w-]{15,}$/.test(id)) throw new Error('Identificador de archivo no válido.');
+  const f = DriveApp.getFileById(id);
+  if(f.isTrashed() || !enCarpeta_(f)) throw new Error('El archivo no pertenece a la carpeta de artes.');
+  const blob = f.getBlob();
+  return { ok:true, nombre: f.getName(), mime: blob.getContentType(),
+           b64: Utilities.base64Encode(blob.getBytes()) };
+}
+
+/* ------------------------------------------------------------------ ESCRITURA */
+function doPost(e){
+  let r;
+  try{
+    const d = JSON.parse(e.postData.contents);
+    if(d.accion === 'subir')          r = subir_(d);
+    else if(d.accion === 'registrar') r = registrar_(d);
+    else if(d.accion === 'editar')    r = editar_(d);
+    else throw new Error('Acción desconocida.');
+  }catch(err){
+    r = { ok:false, error: String(err && err.message || err) };
+  }
+  return salida_(r);
+}
+
+function subir_(d){
+  if(!String(d.por || '').trim()) throw new Error('Falta quién sube.');
+  const mime = String(d.mime || '').toLowerCase();
+  if(MIMES.indexOf(mime) < 0) throw new Error('Solo se aceptan PDF, JPG o PNG.');
+  const b64 = String(d.b64 || '');
+  if(!b64) throw new Error('El archivo llegó vacío.');
+  const bytes = Math.floor(b64.length * 3 / 4);
+  if(bytes > MAX_MB * 1024 * 1024) throw new Error('El archivo pasa de ' + MAX_MB + ' MB.');
+  const base = String(d.nombre || 'archivo').replace(/[\\\/:*?"<>|]+/g, '_').slice(0, 140);
+  const sello = Utilities.formatDate(new Date(), ZONA, 'yyyyMMdd-HHmmss');
+  const blob = Utilities.newBlob(Utilities.base64Decode(b64), mime, sello + '_' + base);
+  const file = carpeta_().createFile(blob);
+  file.setDescription('Item ' + up_(d.item) + ' · subido por ' + String(d.por || '').slice(0, 60));
+  return { ok:true, id: file.getId(), kb: Math.max(1, Math.round(file.getSize() / 1024)) };
+}
+
+function registrar_(d){
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try{
+    const x = d.datos || {};
+    const item = up_(x.item), cliente = up_(x.cliente), proveedor = up_(x.proveedor),
+          tipo = up_(x.tipo), estado = up_(x.estado), area = up_(x.area),
+          por = String(x.por || '').trim().slice(0, 60);
+    if(!item)      throw new Error('Falta el Item.');
+    if(!cliente)   throw new Error('Falta el cliente.');
+    if(!proveedor) throw new Error('Falta el proveedor.');
+    if(!tipo)      throw new Error('Falta el tipo de avío.');
+    if(['POR APROBAR','APROBADO','RECHAZADO'].indexOf(estado) < 0) throw new Error('Estado no válido.');
+    if(AREAS.indexOf(area) < 0) throw new Error('Área no válida.');
+    if(!por) throw new Error('Falta quién sube.');
+
+    const archivos = (d.archivos || []).filter(function(a){ return a && a.id; }).slice(0, 10);
+    if(!archivos.length) throw new Error('No llegó ningún archivo.');
+    archivos.forEach(function(a){
+      if(!enCarpeta_(DriveApp.getFileById(a.id))) throw new Error('Archivo no válido: ' + a.nombre);
+    });
+
+    const sh = hoja_(H_ARTES, COLS);
+    const id = siguienteId_(sh);
+    const ahora = Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm');
+    const mini = String(d.mini || '');
+    const miniOk = mini.length < 49000 && /^data:image\/(jpeg|png);base64,/.test(mini) ? mini : '';
+    const lista = archivos.map(function(a){
+      return { id: a.id, nombre: String(a.nombre || '').slice(0, 150), mime: String(a.mime || ''), kb: Number(a.kb) || 0 };
+    });
+
+    const fila = [];
+    fila[C.ID - 1] = id;
+    fila[C.FECHA_CARGA - 1] = ahora;
+    fila[C.AREA - 1] = area;
+    fila[C.SUBIDO_POR - 1] = por;
+    fila[C.ITEM - 1] = item;
+    fila[C.CLIENTE - 1] = cliente;
+    fila[C.PROVEEDOR - 1] = proveedor;
+    fila[C.TIPO_AVIO - 1] = tipo;
+    fila[C.OC - 1] = codigo_(x.oc);
+    fila[C.PEDIDO - 1] = codigo_(x.pedido);
+    fila[C.ESTILO - 1] = up_(x.estilo).slice(0, 200);
+    fila[C.ESTADO - 1] = estado;
+    fila[C.COMENTARIO - 1] = String(x.comentario || '').trim().slice(0, 1000);
+    fila[C.ARCHIVOS - 1] = JSON.stringify(lista);
+    fila[C.NOMBRES_ARCHIVO - 1] = lista.map(function(a){ return a.nombre; }).join(' | ');
+    fila[C.CODIGOS_DETECTADOS - 1] = String(d.codigos || '').slice(0, 5000);
+    fila[C.MINIATURA - 1] = miniOk;
+    fila[C.ULTIMA_EDICION - 1] = '';
+
+    const r = sh.getLastRow() + 1;
+    asegurarFila_(sh, r);
+    sh.getRange(r, 1, 1, COLS.length).setNumberFormat('@').setValues([fila.map(seguro_)]);
+    return { ok:true, id: id };
+  }finally{
+    lock.releaseLock();
+  }
+}
+
+function editar_(d){
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try{
+    const por = String(d.por || '').trim().slice(0, 60);
+    if(!por) throw new Error('Escribe tu nombre para registrar quién edita.');
+    const sh = hoja_(H_ARTES, COLS);
+    const n = sh.getLastRow();
+    if(n < 2) throw new Error('No hay registros.');
+    const ids = sh.getRange(2, 1, n - 1, 1).getDisplayValues();
+    let fila = -1;
+    for(let i = 0; i < ids.length; i++){ if(ids[i][0] === d.id){ fila = i + 2; break; } }
+    if(fila < 0) throw new Error('No se encontró el registro ' + d.id + '.');
+
+    const actual = sh.getRange(fila, 1, 1, COLS.length).getDisplayValues()[0].map(limpio_);
+    const cambios = d.cambios || {};
+    const hist = hoja_(H_HIST, ['FECHA','ID','CAMPO','ANTES','DESPUES','EDITADO_POR']);
+    const ahora = Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm');
+    let hechos = 0;
+
+    Object.keys(EDITABLES).forEach(function(k){
+      if(!(k in cambios)) return;
+      const col = EDITABLES[k];
+      let nuevo = cambios[k];
+      if(k === 'comentario')              nuevo = String(nuevo || '').trim().slice(0, 1000);
+      else if(k === 'oc' || k === 'pedido') nuevo = codigo_(nuevo);
+      else                                nuevo = up_(nuevo);
+      if(k === 'estado' && ESTADOS.indexOf(nuevo) < 0) throw new Error('Estado no válido.');
+      if(['item','cliente','proveedor','tipo'].indexOf(k) > -1 && !nuevo) throw new Error('El campo ' + k + ' no puede quedar vacío.');
+      const antes = actual[C[col] - 1];
+      if(antes === nuevo) return;
+      sh.getRange(fila, C[col]).setNumberFormat('@').setValue(seguro_(nuevo));
+      const hr = hist.getLastRow() + 1;
+      asegurarFila_(hist, hr);
+      hist.getRange(hr, 1, 1, 6).setNumberFormat('@').setValues([[ahora, d.id, col, seguro_(antes), seguro_(nuevo), seguro_(por)]]);
+      hechos++;
+    });
+    if(hechos){
+      sh.getRange(fila, C.ULTIMA_EDICION).setNumberFormat('@').setValue(seguro_(ahora + ' · ' + por));
+    }
+    return { ok:true, cambios: hechos };
+  }finally{
+    lock.releaseLock();
+  }
+}
+
+/* ------------------------------------------------------------------ AUXILIARES */
+function hoja_(nombre, cabecera){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(nombre);
+  if(!sh){
+    sh = ss.insertSheet(nombre);
+    sh.getRange(1, 1, 1, cabecera.length).setValues([cabecera]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    // Texto plano en todas las columnas: evita que Sheets convierta "2026-09-10 14:30"
+    // en fecha o "26-2163" en otra cosa.
+    sh.getRange(1, 1, sh.getMaxRows(), cabecera.length).setNumberFormat('@');
+  }
+  return sh;
+}
+
+// getRange falla si la fila pasa del tamaño de la hoja (1000 por defecto): se agregan filas.
+function asegurarFila_(sh, r){
+  const max = sh.getMaxRows();
+  if(r > max){
+    sh.insertRowsAfter(max, 500);
+    sh.getRange(max + 1, 1, 500, sh.getMaxColumns()).setNumberFormat('@');
+  }
+}
+
+function carpeta_(){
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('CARPETA_ID');
+  if(id){
+    try{ const f = DriveApp.getFolderById(id); if(!f.isTrashed()) return f; }catch(_){}
+  }
+  const nueva = DriveApp.createFolder(NOMBRE_CARPETA);
+  props.setProperty('CARPETA_ID', nueva.getId());
+  return nueva;
+}
+
+function enCarpeta_(file){
+  const idCarpeta = carpeta_().getId();
+  const it = file.getParents();
+  while(it.hasNext()){ if(it.next().getId() === idCarpeta) return true; }
+  return false;
+}
+
+function siguienteId_(sh){
+  const n = sh.getLastRow();
+  let max = 0;
+  if(n >= 2){
+    sh.getRange(2, 1, n - 1, 1).getDisplayValues().forEach(function(r){
+      const m = /^ART-(\d+)$/.exec(r[0]);
+      if(m) max = Math.max(max, Number(m[1]));
+    });
+  }
+  return 'ART-' + ('000000' + (max + 1)).slice(-6);
+}
+
+function up_(v){ return String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase(); }
+function codigo_(v){ return up_(v).replace(/\s*[-–]\s*/g, '-').slice(0, 60); }
+// Un texto que empieza con = + - @ se tomaría como fórmula: se protege con apóstrofo.
+function seguro_(v){ const s = String(v == null ? '' : v); return /^[=+\-@]/.test(s) ? "'" + s : s; }
+function limpio_(v){ return String(v == null ? '' : v).replace(/^'(?=[=+\-@])/, ''); }
+
+function salida_(obj, callback){
+  const json = JSON.stringify(obj);
+  if(callback && /^[A-Za-z_$][\w$]{0,60}$/.test(callback)){
+    return ContentService.createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+-->
+</body>
+</html>
