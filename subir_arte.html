@@ -2,6 +2,279 @@
 <html lang="es-PE">
 <head>
 <meta charset="utf-8">
+<!-- ============================================================================
+     LIVES · SESIÓN DEL PORTAL EN LAS HERRAMIENTAS            lives-sesion v1 · 2026-09-18
+     Bloque común: es idéntico en todas las herramientas. Si se corrige, se corrige en
+     todas. No depende de nada de la página.
+     · Toma la sesión del portal (misma dirección github.io, se comparte sola). Dentro del
+       portal no se ve nada distinto.
+     · Si la herramienta se abre suelta y no hay sesión, pide usuario y clave aquí mismo,
+       con las mismas cuentas del portal. Esa sesión también sirve para el portal.
+     · Toda lectura a Supabase sale con la llave de la persona. Cuando Supabase deje de
+       aceptar lecturas anónimas (SQL 21), sin sesión no se lee nada.
+     · El nombre de quien trabaja sale de la sesión, no de la dirección: ?usuario= se
+       reescribe con el nombre real para que nadie pueda escribir otro.
+     · Renueva la llave antes de que venza (dura 1 hora) sin chocar con el portal ni con
+       otras pestañas.
+     ============================================================================ -->
+<style id="lsCss">
+#lsCapa{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(241,246,244,.97);font-family:Calibri,Arial,sans-serif;overflow:auto;}
+#lsCapa.ver{display:flex;}
+#lsCapa .lsCaja{width:100%;max-width:430px;background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 30px rgba(14,59,54,.13);}
+#lsCapa .lsCab{background:#0E3B36;border-bottom:3px solid #10B981;padding:20px;display:flex;justify-content:center;}
+#lsCapa .lsCab img{height:34px;display:block;}
+#lsCapa .lsCuerpo{padding:24px 24px 22px;text-align:center;}
+#lsCapa .lsTit{font-size:19px;font-weight:800;color:#1a1a1a;margin-bottom:8px;}
+#lsCapa .lsSub{font-size:13.5px;color:#5F726C;margin-bottom:22px;line-height:1.5;}
+#lsCapa .lsBtn{display:inline-block;min-height:46px;background:#0F7A5A;color:#fff;border:none;border-radius:9px;
+  font-family:inherit;font-size:15px;font-weight:800;padding:13px 26px;text-decoration:none;line-height:20px;}
+#lsCapa .lsBtn:hover{background:#0B815E;}
+</style>
+<script id="lsJs">
+(function(){
+  'use strict';
+  if (window.LIVES_SESION) return;                       /* por si el bloque quedara dos veces */
+
+  var SB_URL  = 'https://xxfufpddgoyhbotjmaiy.supabase.co';
+  var SB_KEY  = 'sb_publishable_1g-n6UT70EUlNAo8Lyc04w_jKR4LpXZ';
+  /* Idénticos al portal (SBP_DOMINIO, SBP_PREFIJO) y a accesos_supabase. */
+  var DOMINIO = '@usuarios.lives.example.com';
+  var PREFIJO = 'Lives#';
+  var CLAVE   = 'lives_portal_sesion';                   /* misma llave que usa el portal */
+  var CANDADO = 'lives_sb_renovando';
+  var PORTAL  = 'https://iaanalistalives-ux.github.io/lives-portal/';
+  var MOVIL   = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  var GRACIA  = (MOVIL ? 720 : 60) * 60000;              /* igual que el portal */
+  var LOGO    = 'data:image/png;base64,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';
+  var fetchBase = window.fetch.bind(window);
+  var yo = Math.random().toString(36).slice(2);
+
+  /* ---------- guardar y leer la sesión (mismo formato que el portal) ---------- */
+  function leerJ(area, k){ try{ return JSON.parse(area.getItem(k) || 'null'); }catch(e){ return null; } }
+  function valida(d){
+    return !!(d && d.token && d.permisos && d.sb && d.sb.access && d.sb.refresh);
+  }
+
+  /* La sesión vigente. Si hay dos copias (la de esta pestaña y el respaldo común) y son
+     de la misma persona, se queda con la llave más nueva: otra pestaña o el portal pudo
+     renovarla, y usar una llave ya renovada cierra la sesión en Supabase. */
+  function sesion(){
+    var s = null, r = null;
+    try{ s = leerJ(sessionStorage, CLAVE); }catch(e){}
+    try{
+      var x = leerJ(localStorage, CLAVE + '_resp');
+      if (x && valida(x.d) && (Date.now() - x.ts) < GRACIA) r = x.d;
+    }catch(e){}
+    if (!valida(s)) s = null;
+    if (!s && r){ s = r; try{ sessionStorage.setItem(CLAVE, JSON.stringify(s)); }catch(e){} }
+    if (s && r && r.usuario === s.usuario && r.sb && (!s.sb || r.sb.exp > s.sb.exp)){
+      s.sb = r.sb;
+      try{ sessionStorage.setItem(CLAVE, JSON.stringify(s)); }catch(e){}
+    }
+    return s;
+  }
+  function guardar(d){
+    try{ sessionStorage.setItem(CLAVE, JSON.stringify(d)); }catch(e){}
+    try{ localStorage.setItem(CLAVE + '_resp', JSON.stringify({ d: d, ts: Date.now() })); }catch(e){}
+  }
+  function borrar(){
+    try{ sessionStorage.removeItem(CLAVE); }catch(e){}
+    try{ localStorage.removeItem(CLAVE + '_resp'); }catch(e){}
+  }
+  /* Mientras se usa la herramienta, el respaldo cuenta desde la última actividad. */
+  function refrescarMarca(){
+    var s = sesion(); if (!s) return;
+    try{ localStorage.setItem(CLAVE + '_resp', JSON.stringify({ d: s, ts: Date.now() })); }catch(e){}
+  }
+  setInterval(refrescarMarca, 60000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) refrescarMarca(); });
+
+  function equipo(){
+    var n = navigator.userAgent || '';
+    var so = /Android/i.test(n) ? 'Android' : /iPhone|iPad/i.test(n) ? 'iPhone/iPad'
+           : /Windows/i.test(n) ? 'Windows' : /Mac/i.test(n) ? 'Mac' : 'Otro';
+    return so + (window.top === window ? ' · suelta' : '');
+  }
+
+  function pedir(ruta, cuerpo, token, ms){
+    var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var reloj = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 15000);
+    var cab = { 'Content-Type': 'application/json', apikey: SB_KEY };
+    if (token) cab.Authorization = 'Bearer ' + token;
+    return fetchBase(SB_URL + ruta, { method: 'POST', headers: cab, body: JSON.stringify(cuerpo || {}),
+                                      cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function(r){
+        clearTimeout(reloj);
+        return r.text().then(function(t){
+          var j = null; try{ j = t ? JSON.parse(t) : null; }catch(e){}
+          return { status: r.status, ok: r.ok, json: j };
+        });
+      }, function(e){ clearTimeout(reloj); throw e; });
+  }
+  function esperar(ms){ return new Promise(function(ok){ setTimeout(ok, ms); }); }
+
+  /* ---------- llave vigente, renovada sin chocar con otras pestañas ---------- */
+  var renovando = null;
+  function llave(forzar){
+    var s = sesion();
+    if (!s || !s.sb || !s.sb.refresh) return Promise.resolve(null);
+    if (!forzar && s.sb.exp - Date.now() > 60000) return Promise.resolve(s.sb.access);
+    if (renovando) return renovando;
+    var usada = s.sb.refresh;
+    renovando = (function intento(n){
+      var c = leerJ(localStorage, CANDADO);
+      if (c && c.hasta > Date.now() && c.quien !== yo && n < 4){
+        /* Otra pestaña o el portal está renovando: se espera y se usa lo que deje. */
+        return esperar(1500).then(function(){
+          var s2 = sesion();
+          if (s2 && s2.sb && s2.sb.refresh !== usada && s2.sb.exp - Date.now() > 60000) return s2.sb.access;
+          return intento(n + 1);
+        });
+      }
+      try{ localStorage.setItem(CANDADO, JSON.stringify({ quien: yo, hasta: Date.now() + 10000 })); }catch(e){}
+      return pedir('/auth/v1/token?grant_type=refresh_token', { refresh_token: usada })
+        .then(function(r){
+          if (r.ok && r.json && r.json.access_token){
+            var s3 = sesion() || s;
+            s3.sb = { access: r.json.access_token, refresh: r.json.refresh_token,
+                      exp: Date.now() + (Number(r.json.expires_in) || 3600) * 1000 };
+            guardar(s3);
+            return s3.sb.access;
+          }
+          /* Rechazada: puede que otra pestaña la haya renovado un instante antes. */
+          var s4 = sesion();
+          if (s4 && s4.sb && s4.sb.refresh !== usada && s4.sb.exp - Date.now() > 60000) return s4.sb.access;
+          if (r.status === 400 || r.status === 401 || r.status === 403) return null;   /* sesión cerrada */
+          return null;
+        }, function(){ return null; })                                             /* sin señal */
+        .then(function(tk){
+          try{ var c2 = leerJ(localStorage, CANDADO); if (c2 && c2.quien === yo) localStorage.removeItem(CANDADO); }catch(e){}
+          return tk;
+        });
+    })(0).then(function(tk){ renovando = null; return tk; }, function(){ renovando = null; return null; });
+    return renovando;
+  }
+
+  /* ---------- toda lectura a Supabase sale con la llave de la persona ---------- */
+  function conLlave(init, tk){
+    var o = {}, k;
+    init = init || {};
+    for (k in init) o[k] = init[k];
+    var h = {};
+    if (init.headers && typeof init.headers.forEach === 'function' && !(init.headers instanceof Array)){
+      init.headers.forEach(function(v, n){ h[n] = v; });
+    } else if (init.headers){
+      for (k in init.headers) h[k] = init.headers[k];
+    }
+    var tiene = false;
+    for (k in h) if (k.toLowerCase() === 'authorization') tiene = true;
+    if (!tiene && tk) h.Authorization = 'Bearer ' + tk;
+    var tieneKey = false;
+    for (k in h) if (k.toLowerCase() === 'apikey') tieneKey = true;
+    if (!tieneKey) h.apikey = SB_KEY;
+    o.headers = h;
+    return o;
+  }
+  window.fetch = function(entrada, init){
+    var url = (typeof entrada === 'string') ? entrada : '';
+    if (url.indexOf(SB_URL + '/rest/v1/') !== 0) return fetchBase(entrada, init);
+    return llave(false).then(function(tk){
+      return fetchBase(url, conLlave(init, tk)).then(function(r){
+        if (r.status !== 401) return r;
+        /* 401: la llave venció o la cerraron. Se renueva una vez y se reintenta. */
+        return llave(true).then(function(tk2){
+          if (!tk2){ pedirSesion(); return r; }
+          return fetchBase(url, conLlave(init, tk2)).then(function(r2){
+            if (r2.status === 401) pedirSesion();
+            return r2;
+          });
+        });
+      });
+    });
+  };
+
+  /* ---------- el nombre sale de la sesión, no de la dirección ---------- */
+  function fijarNombre(s){
+    if (!s || !s.nombre) return;
+    try{
+      var u = new URL(location.href);
+      if (u.searchParams.get('usuario') !== s.nombre){
+        u.searchParams.set('usuario', s.nombre);
+        u.searchParams.delete('nombre');
+        history.replaceState(history.state, '', u.toString());
+      }
+    }catch(e){}
+  }
+
+  /* ---------- aviso de "sin sesión" (21/09: sin formulario propio) ----------
+     El portal es la ÚNICA puerta. Esta herramienta nunca pide usuario ni clave: si
+     no hay sesión del portal (o quedó vieja/vencida), solo avisa y enlaza de vuelta
+     al portal. Entrar ahí es lo único que arregla esto — no hay nada que escribir
+     aquí. Esto es a propósito: evita que cada herramienta tenga su propia puerta
+     que pueda fallar o quedar desincronizada del portal. */
+  function capa(){
+    var c = document.getElementById('lsCapa');
+    if (c) return c;
+    c = document.createElement('div');
+    c.id = 'lsCapa';
+    c.setAttribute('role', 'dialog');
+    c.innerHTML =
+      '<div class="lsCaja"><div class="lsCab"><img alt="LIVES" src="' + LOGO + '"></div>' +
+      '<div class="lsCuerpo"><div class="lsTit" id="lsTit">Abre esto desde el portal</div>' +
+      '<div class="lsSub" id="lsSub">Esta herramienta no tiene su propia entrada. ' +
+      'Ve al portal LIVES e inicia sesión ahí; esta pantalla se abre sola en cuanto lo hagas.</div>' +
+      '<a class="lsBtn" href="' + PORTAL + '" target="_top">Ir al portal</a></div></div>';
+    document.body.appendChild(c);
+    return c;
+  }
+
+  var pidiendo = false;
+  function pedirSesion(){
+    if (pidiendo) return;
+    pidiendo = true;
+    function abrir(){ capa().classList.add('ver'); }
+    if (document.body) abrir(); else document.addEventListener('DOMContentLoaded', abrir);
+  }
+
+  /* ---------- al abrir ---------- */
+  var s0 = sesion();
+  if (!s0){
+    pedirSesion();
+  } else {
+    fijarNombre(s0);
+    /* Si alguien ejecutó cerrar_todas_las_sesiones(), esta sesión ya no vale. Sin señal
+       no se hace nada: nadie queda afuera por falta de conexión. */
+    pedir('/rest/v1/rpc/version_sesion', {}, null, 8000).then(function(v){
+      if (!v.ok || typeof v.json !== 'number') return;
+      var s = sesion(); if (!s) return;
+      if (s.vsesion === undefined || (s.vsesion !== null && s.vsesion !== v.json)){ borrar(); pedirSesion(); return; }
+      if (s.vsesion === null){ s.vsesion = v.json; guardar(s); }
+    }).catch(function(){});
+    /* Abierta fuera del portal: se anota igual que cuando se abre desde el portal. */
+    if (window.top === window && s0.sb){
+      document.addEventListener('DOMContentLoaded', function(){
+        llave(false).then(function(tk){
+          if (!tk) return;
+          return pedir('/rest/v1/rpc/registrar_apertura',
+            { p_herramienta: (document.title || location.pathname) + ' (suelta)',
+              p_url: location.origin + location.pathname, p_equipo: equipo() }, tk, 10000);
+        }).catch(function(){});
+      });
+    }
+  }
+
+  window.LIVES_SESION = {
+    version: 'lives-sesion v2 · 2026-09-21 (sin login propio, solo portal)',
+    actual: function(){ var s = sesion(); return s ? { usuario: s.usuario, nombre: s.nombre, conSupabase: !!s.sb } : null; },
+    llave: function(){ return llave(false); },
+    pedir: function(){ pedirSesion(); }
+  };
+})();
+</script>
+<!-- ===== fin lives-sesion v1 ===== -->
+<script>if (window.self !== window.top) document.documentElement.classList.add('embebido');</script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Subir arte de avíos · LIVES</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -16,6 +289,13 @@
 body{margin:0;background:var(--warm-light);color:#333;font-family:Calibri,Arial,sans-serif;
 font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums;}
 *{box-sizing:border-box;}
+
+/* Dentro del portal (iframe) el portal ya pone su barra: se oculta el header propio. */
+html.embebido .header, html.embebido header, html.embebido .topbar{display:none!important}
+html.embebido body{padding-top:0!important;margin-top:0!important}
+.solo-emb{display:none!important}
+html.embebido .solo-emb{display:inline-flex!important;margin-bottom:12px}
+.fijo{min-height:44px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--warm);border-radius:8px;background:var(--warm-light);font-weight:700;color:#1a1a1a;}
 
 .header{background:var(--petrol);border-bottom:3px solid var(--emer);min-height:70px;
 display:flex;align-items:center;gap:16px;padding:0 22px;flex-wrap:wrap;}
@@ -158,6 +438,7 @@ details.help p{color:var(--stone);margin:8px 0 0;}
 </div>
 
 <div class="wrap">
+  <a class="btn solo-emb" id="lnkVisor2" href="#">← Volver al visor</a>
   <div class="aviso" id="aviso"></div>
 
   <form id="form" autocomplete="off" novalidate>
@@ -267,7 +548,7 @@ details.help p{color:var(--stone);margin:8px 0 0;}
     <div class="card">
       <span class="tira"></span>
       <div class="pt">3. Quién sube</div>
-      <div class="ph">Queda registrado junto con la fecha y hora de carga.</div>
+      <div class="ph">Queda registrado junto con la fecha y hora de carga. El área se recuerda en este equipo.</div>
       <div class="campo" data-id="area">
         <label>Área <span class="req">*</span></label>
         <div class="seg" id="segArea">
@@ -277,10 +558,9 @@ details.help p{color:var(--stone);margin:8px 0 0;}
         <div class="msg"></div>
       </div>
       <div class="campo" data-id="por">
-        <label for="f_por">Nombre y apellido <span class="req">*</span></label>
-        <input id="f_por" maxlength="60" placeholder="Ej. Ana Torres">
-        <div class="msg"></div>
-        <div class="ayuda">Se recuerda en este equipo para la próxima carga.</div>
+        <label>Sube</label>
+        <div class="fijo" id="f_porTxt">—</div>
+        <div class="ayuda">Sale de tu usuario del portal: no hay que escribirlo.</div>
       </div>
     </div>
 
@@ -309,7 +589,7 @@ details.help p{color:var(--stone);margin:8px 0 0;}
     <p><b>Reconocimiento automático</b>: en los PDF se lee el texto y el nombre del archivo para proponer OC, pedido, estilo, cliente, proveedor, tipo y el sello APPROVED. Las fotos (JPG, PNG) no tienen texto legible: de ellas solo se usa el nombre del archivo. Nada se guarda sin que tú lo confirmes.</p>
     <p><b>Si el item ya existe</b>, lo que subas queda como una carga nueva del mismo item; lo anterior no se borra. En el visor se ven todas las cargas del item, la más reciente primero.</p>
     <p><b>Fecha</b>: se guarda la fecha y hora de carga, no la del documento, porque cada proveedor escribe la fecha en un formato distinto.</p>
-    <p><b>Si algo quedó mal</b>, se corrige desde el visor con "Editar datos"; queda registrado quién hizo cada cambio. Un registro subido por error se marca como <b>Anulado</b>: deja de verse, pero no se borra.</p>
+    <p><b>Si algo quedó mal</b>, se corrige desde el visor con "Editar datos"; queda registrado a nombre de tu usuario del portal. Un registro subido por error se marca como <b>Anulado</b>: deja de verse, pero no se borra.</p>
     <p><b>Si falla el envío</b>, el formulario queda lleno tal cual: vuelve a pulsar "Guardar arte". Los archivos que ya se subieron no se vuelven a subir.</p>
   </details>
 </div>
@@ -317,18 +597,20 @@ details.help p{color:var(--stone);margin:8px 0 0;}
 <script>
 /* ==========================================================================
    SUBIR ARTE DE AVÍOS · LIVES
-   Solo se toca el bloque CFG. El backend (Apps Script) está comentado al final
-   de este archivo y también se entrega aparte como artes_backend.gs.
+   Guarda en Supabase (lives-datos): archivos en el almacén privado "avios" y datos en
+   avios_artes, con la sesión del portal. El SQL del backend (AV01_artes_avios.sql) va
+   al final de este archivo, dentro de <script type="text/plain">: no se ejecuta.
    ========================================================================== */
 const CFG = {
-  endpoint   : "https://script.google.com/macros/s/AKfycbyJdkOWf67JnNEV4tmOuUUht-x4wERzdkljN48-EsPcx2gMZaHr4lEAkqgLW0qun6y1eA/exec",
-  visor      : "./",                // el visor es el index.html de la misma carpeta  // página del visor, en la misma carpeta de GitHub
+  sb         : "https://xxfufpddgoyhbotjmaiy.supabase.co",           // proyecto lives-datos
+  llavePublica: "sb_publishable_1g-n6UT70EUlNAo8Lyc04w_jKR4LpXZ",  // pública; los datos exigen sesión
+  visor      : "./",                // el visor es el index.html de la misma carpeta
   maxArchivos: 10,
   maxMB      : 15
 };
 
-/* Catálogo por defecto: se usa en modo prueba o si el servidor no responde.
-   Con el servidor conectado manda la hoja CATALOGOS. */
+/* Catálogo por defecto: solo si la base de datos no responde al abrir.
+   Con conexión manda la tabla avios_catalogos. */
 const CAT_DEFECTO = {
   clientes:[{v:"EFI",d:"Eileen Fisher"},{v:"PAK",d:"Paka"},{v:"THY",d:"Theory"},{v:"VINCE",d:"Vince"},
             {v:"PERUVIAN",d:""},{v:"QUIMA",d:""},{v:"HELMUT LANG",d:""},{v:"STRAIGHT DOWN",d:""}],
@@ -340,10 +622,16 @@ const OTRO = "__OTRO__";
 
 let CAT = CAT_DEFECTO;
 let FILAS = [];            // registros existentes (para avisar duplicados)
-let ARCH = [];             // archivos elegidos: {uid,file,nombre,mime,kb,b64,texto,thumb,fileId,estado,nota}
+let ARCH = [];             // archivos elegidos: {uid,file,nombre,mime,kb,texto,thumb,fileId,estado,nota}
 let SUGERIDOS = {};        // campos llenados por el reconocimiento y aún no tocados por la persona
 let AREA = "";
 let enviando = false;
+let YO = {nombre:"", puede:false};   // sale de la sesión del portal (avios_listar)
+let ENVIO = nuevoEnvio();            // identifica esta carga: un reintento no la duplica
+function nuevoEnvio(){
+  let u=""; try{ u=crypto.randomUUID(); }catch(_){ u=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,12); }
+  return "av-"+u;
+}
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -352,35 +640,59 @@ if(window.pdfjsLib){
   pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 }
 
-/* ---------------------------------------------------------------- servidor */
-async function apiGet(params){
-  const url = CFG.endpoint + "?" + new URLSearchParams(params).toString() + "&_=" + Date.now();
-  try{
-    const r = await fetch(url);
-    return await r.json();
-  }catch(e){
-    return await jsonp(url);
-  }
+/* ---------------------------------------------------------------- Supabase
+   Todo sale con la llave de la sesión del portal (bloque lives-sesion). No hay respaldo:
+   si Supabase no responde se reintenta una vez y se avisa. La siguiente acción vuelve a
+   intentar; una falla nunca deja la pantalla bloqueada. */
+const esperar=ms=>new Promise(r=>setTimeout(r,ms));
+async function conTiempo(url,init,ms){
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),ms);
+  try{ return await fetch(url,Object.assign({},init,{signal:ctl.signal})); }
+  finally{ clearTimeout(t); }
 }
-function jsonp(url){
-  return new Promise((res,rej)=>{
-    const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
-    const s = document.createElement("script");
-    const t = setTimeout(()=>{ fin(); rej(new Error("El servidor no respondió.")); }, 60000);
-    function fin(){ clearTimeout(t); try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); }
-    window[cb] = d => { fin(); res(d); };
-    s.onerror = () => { fin(); rej(new Error("No se pudo conectar con el servidor.")); };
-    s.src = url + "&callback=" + cb;
-    document.head.appendChild(s);
-  });
+async function unaVezMas(hacer){
+  try{ return await hacer(); }
+  catch(e){ await esperar(1500); return await hacer(); }
 }
-async function apiPost(obj){
-  const r = await fetch(CFG.endpoint, { method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(obj) });
-  let j;
-  try{ j = await r.json(); }catch(_){ throw new Error("Respuesta inválida del servidor."); }
-  if(!j.ok) throw new Error(j.error || "El servidor rechazó la operación.");
+async function rpc(fn,args){
+  const r=await unaVezMas(()=>conTiempo(CFG.sb+"/rest/v1/rpc/"+fn,{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(args||{}),cache:"no-store"},25000))
+    .catch(()=>{ throw new Error("No hay conexión con la base de datos"); });
+  if(r.status===401) throw new Error("Tu sesión del portal venció: vuelve a entrar desde el portal");
+  let j=null; try{ j=await r.json(); }catch(_){}
+  if(!r.ok) throw new Error((j&&(j.message||j.error))||("La base de datos respondió con error "+r.status));
+  if(!j||j.ok===false) throw new Error((j&&j.error)||"La base de datos no devolvió datos");
   return j;
+}
+async function llaveSesion(){
+  const tk=window.LIVES_SESION?await LIVES_SESION.llave():null;
+  if(!tk){ if(window.LIVES_SESION) LIVES_SESION.pedir(); throw new Error("Sin sesión del portal: entra desde el portal"); }
+  return tk;
+}
+const rutaUrl=p=>String(p).split("/").map(encodeURIComponent).join("/");
+// Nombre seguro para el almacén: sin tildes, espacios ni símbolos. El nombre original queda en los datos.
+function saneado(n){
+  const m=/\.([A-Za-z0-9]{1,5})$/.exec(n), ext=m?"."+m[1].toLowerCase():"";
+  const b=(m?n.slice(0,-m[0].length):n).normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^A-Za-z0-9._-]+/g,"_").replace(/_+/g,"_").replace(/^[._-]+|[._-]+$/g,"").slice(0,90);
+  return (b||"archivo")+ext;
+}
+function rutaDe(a){
+  const t=new Date(), p2=n=>String(n).padStart(2,"0");
+  return t.getFullYear()+"/"+p2(t.getMonth()+1)+"/"+ENVIO+"/"+a.uid+"_"+saneado(a.nombre);
+}
+async function subirArchivo(ruta,a){
+  const tk=await llaveSesion();
+  const r=await unaVezMas(()=>conTiempo(CFG.sb+"/storage/v1/object/avios/"+rutaUrl(ruta),
+      {method:"POST",headers:{apikey:CFG.llavePublica,Authorization:"Bearer "+tk,"Content-Type":a.mime,"x-upsert":"false"},body:a.file},180000))
+    .catch(()=>{ throw new Error("se cortó la conexión"); });
+  if(r.ok) return;
+  let t=""; try{ t=await r.text(); }catch(_){}
+  if(r.status===409||/duplicate|already exists/i.test(t)) return;   // ya estaba: un intento anterior sí llegó
+  if(r.status===413||/maximum allowed size|too large|exceeded/i.test(t)) throw new Error("pasa de "+CFG.maxMB+" MB");
+  if(r.status===401) throw new Error("tu sesión del portal venció: vuelve a entrar desde el portal");
+  if(r.status===403||/row-level security|unauthorized|not allowed/i.test(t)) throw new Error("tu usuario no tiene permiso para subir artes");
+  throw new Error("el almacén respondió con error "+r.status);
 }
 
 /* ---------------------------------------------------------------- avisos y campos */
@@ -430,7 +742,7 @@ function getCampo(id){
   });
   $("o_"+id).addEventListener("input",()=>{ sugerido(id,false); marcar(id,""); });
 });
-["item","estado","oc","pedido","estilo","comentario","por"].forEach(id=>{
+["item","estado","oc","pedido","estilo","comentario"].forEach(id=>{
   $("f_"+id).addEventListener("input",()=>{ sugerido(id,false); marcar(id,""); if(id==="item") avisarDuplicado(); });
   $("f_"+id).addEventListener("change",()=>{ sugerido(id,false); marcar(id,""); });
 });
@@ -438,13 +750,12 @@ document.querySelectorAll("#segArea button").forEach(b=>{
   b.onclick=()=>{ AREA=b.dataset.v; pintarArea(); marcar("area",""); recordar(); };
 });
 function pintarArea(){ document.querySelectorAll("#segArea button").forEach(b=>b.classList.toggle("active",b.dataset.v===AREA)); }
-$("f_por").addEventListener("change",recordar);
-function recordar(){ try{ localStorage.setItem("artes_nombre",$("f_por").value.trim()); localStorage.setItem("artes_area",AREA); }catch(_){ } }
+function recordar(){ try{ localStorage.setItem("artes_area",AREA); }catch(_){ } }
 const AREAS_OK=["LOGÍSTICA","CALIDAD"];
 function recuperar(){
   // Logística es quien sube casi siempre: queda elegida por defecto. Calidad la cambia una vez y se recuerda en su equipo.
   let a="";
-  try{ $("f_por").value=localStorage.getItem("artes_nombre")||""; a=localStorage.getItem("artes_area")||""; }catch(_){ }
+  try{ a=localStorage.getItem("artes_area")||""; }catch(_){ }
   AREA=AREAS_OK.includes(a)?a:"LOGÍSTICA";
   pintarArea();
 }
@@ -477,7 +788,7 @@ async function agregar(files){
     if(ARCH.length>=CFG.maxArchivos){ rechazos.push(f.name+": máximo "+CFG.maxArchivos+" archivos por carga"); continue; }
     if(ARCH.some(a=>a.nombre===f.name && a.file.size===f.size)){ rechazos.push(f.name+": ya está en la lista"); continue; }
     ARCH.push({uid:Math.random().toString(36).slice(2), file:f, nombre:f.name, mime:mime,
-               kb:Math.max(1,Math.round(f.size/1024)), b64:"", texto:"", thumb:"", fileId:"", estado:"leyendo", nota:""});
+               kb:Math.max(1,Math.round(f.size/1024)), texto:"", thumb:"", fileId:"", estado:"leyendo", nota:""});
   }
   if(rechazos.length) marcar("archivos","No se agregaron: "+rechazos.join(" · "));
   pintarLista();
@@ -492,8 +803,6 @@ function leerDataURL(f){ return new Promise((res,rej)=>{ const r=new FileReader(
 function leerBuffer(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsArrayBuffer(f); }); }
 
 async function leerArchivo(a){
-  const dataUrl=await leerDataURL(a.file);
-  a.b64=dataUrl.slice(dataUrl.indexOf(",")+1);
   if(a.mime==="application/pdf"){
     if(!window.pdfjsLib){ a.nota="No se cargó el lector de PDF: el texto no se reconoce (se sube igual)"; return; }
     const buf=await leerBuffer(a.file);
@@ -703,9 +1012,9 @@ function validar(){
     item:getCampo("item").toUpperCase(), cliente:getCampo("cliente"), proveedor:getCampo("proveedor"),
     tipo:getCampo("tipo"), estado:getCampo("estado"), oc:getCampo("oc").toUpperCase(),
     pedido:getCampo("pedido").toUpperCase(), estilo:getCampo("estilo").toUpperCase(),
-    comentario:getCampo("comentario"), area:AREA, por:getCampo("por")
+    comentario:getCampo("comentario"), area:AREA
   };
-  ["archivos","item","cliente","proveedor","tipo","estado","area","por"].forEach(id=>marcar(id,""));
+  ["archivos","item","cliente","proveedor","tipo","estado","area"].forEach(id=>marcar(id,""));
   if(!ARCH.length){ marcar("archivos","Agrega al menos un archivo."); ok=false; }
   else if(ARCH.some(a=>a.estado==="leyendo")){ marcar("archivos","Espera a que terminen de leerse los archivos."); ok=false; }
   if(!d.item){ marcar("item","Escribe el código del producto."); ok=false; }
@@ -715,8 +1024,6 @@ function validar(){
   });
   if(!d.estado){ marcar("estado","Elige el estado del arte."); ok=false; }
   if(!d.area){ marcar("area","Elige tu área."); ok=false; }
-  if(!d.por){ marcar("por","Escribe tu nombre y apellido."); ok=false; }
-  else if(!/\S+\s+\S+/.test(d.por)){ marcar("por","Escribe también tu apellido."); ok=false; }
   return ok?d:null;
 }
 
@@ -725,23 +1032,19 @@ $("form").onsubmit=async e=>{
   if(enviando) return;
   aviso("");
   const d=validar();
+  if(!YO.puede){ aviso(sinPermiso(),"error"); window.scrollTo({top:0,behavior:"smooth"}); return; }
   if(!d){ aviso("Revisa los campos marcados en rojo.","error"); const m=document.querySelector(".campo.malo"); if(m) m.scrollIntoView({behavior:"smooth",block:"center"}); return; }
   enviando=true; $("btnGuardar").disabled=true; $("btnLimpiar").disabled=true;
   try{
-    if(!CFG.endpoint){
-      $("estado").textContent="Simulando…";
-      await new Promise(r=>setTimeout(r,700));
-      terminar("MODO-PRUEBA", true);
-      return;
-    }
     const pend=ARCH.filter(a=>!a.fileId);
     for(let i=0;i<pend.length;i++){
       const a=pend[i];
       a.estado="subiendo"; pintarLista();
       $("estado").textContent="Subiendo archivo "+(i+1)+" de "+pend.length+"…";
       try{
-        const j=await apiPost({accion:"subir", nombre:a.nombre, mime:a.mime, b64:a.b64, item:d.item, por:d.por});
-        a.fileId=j.id; a.estado="listo"; a.nota="";
+        const ruta=a.ruta||(a.ruta=rutaDe(a));
+        await subirArchivo(ruta,a);
+        a.fileId=ruta; a.estado="listo"; a.nota="";
       }catch(err){
         a.estado="error"; a.nota=err.message; pintarLista();
         throw new Error("no se pudo subir "+a.nombre+" ("+err.message+")");
@@ -752,10 +1055,10 @@ $("form").onsubmit=async e=>{
     $("estado").textContent="Registrando…";
     const conThumb=ARCH.find(a=>a.thumb);
     const codigos=detectarDatos(ARCH.map(a=>a.texto), ARCH.map(a=>a.nombre), null).codigos;
-    const j=await apiPost({accion:"registrar", datos:d,
-      archivos:ARCH.map(a=>({id:a.fileId, nombre:a.nombre, mime:a.mime, kb:a.kb})),
-      mini: conThumb?conThumb.thumb:"", codigos:codigos});
-    terminar(j.id, false);
+    const j=await rpc("avios_registrar",{p_datos:d,
+      p_archivos:ARCH.map(a=>({id:a.fileId, nombre:a.nombre, mime:a.mime, kb:a.kb})),
+      p_mini: conThumb?conThumb.thumb:"", p_codigos:codigos, p_envio:ENVIO});
+    terminar(j.id);
   }catch(err){
     aviso("No se pudo guardar: "+esc(String(err.message).replace(/\.+$/,""))+". Lo que escribiste sigue aquí; revisa tu conexión y vuelve a pulsar <b>Guardar arte</b>. "+
           "Los archivos que ya dicen “Subido ✓” no se vuelven a subir.","error");
@@ -766,443 +1069,517 @@ $("form").onsubmit=async e=>{
   }
 };
 
-function terminar(id, prueba){
+function terminar(id){
   $("form").style.display="none";
   $("exito").style.display="block";
   $("codigo").textContent="Código del registro: "+id;
-  if(prueba){
-    $("exitoTxt").textContent="Modo prueba: no hay servidor configurado, así que no se subió ni se guardó nada.";
-    $("lnkVerRegistro").href=CFG.visor;
-  }else{
-    $("exitoTxt").textContent="Ya aparece en el visor. No hace falta reenviar el correo.";
-    $("lnkVerRegistro").href=CFG.visor+"#"+encodeURIComponent(id);
-    const t=new Date(), p2=n=>String(n).padStart(2,"0");
-    const ahora=t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())+" "+p2(t.getHours())+":"+p2(t.getMinutes());
-    FILAS.push({id:id, item:getCampo("item").toUpperCase(), estado:getCampo("estado"), fecha:ahora, oc:getCampo("oc").toUpperCase(),
+  $("exitoTxt").textContent="Ya aparece en el visor. No hace falta reenviar el correo.";
+  $("lnkVerRegistro").href=CFG.visor+"#"+encodeURIComponent(id);
+  const t=new Date(), p2=n=>String(n).padStart(2,"0");
+  const ahora=t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())+" "+p2(t.getHours())+":"+p2(t.getMinutes());
+  if(!FILAS.some(r=>r.id===id))
+    FILAS.push({id:id, item:getCampo("item").toUpperCase().replace(/\s+/g," "), estado:getCampo("estado"), fecha:ahora, oc:getCampo("oc").toUpperCase(),
                 archivos:ARCH.map(a=>({nombre:a.nombre,kb:a.kb}))});
-  }
   aviso("");
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function limpiar(){
-  ARCH=[]; SUGERIDOS={};
+  ARCH=[]; SUGERIDOS={}; ENVIO=nuevoEnvio();
   ["item","oc","pedido","estilo","comentario"].forEach(id=>{ $("f_"+id).value=""; });
   ["cliente","proveedor","tipo","estado"].forEach(id=>setCampo(id,""));
   document.querySelectorAll(".campo").forEach(c=>c.classList.remove("malo","sugerido"));
   $("cardReco").style.display="none"; $("dupItem").style.display="none";
   pintarLista(); recuperar();
 }
-$("btnLimpiar").onclick=()=>{ if(!enviando){ limpiar(); aviso(CFG.endpoint?"":AVISO_PRUEBA,"info"); } };
-$("btnOtro").onclick=()=>{ $("exito").style.display="none"; $("form").style.display=""; limpiar(); aviso(CFG.endpoint?"":AVISO_PRUEBA,"info"); };
+$("btnLimpiar").onclick=()=>{ if(!enviando){ limpiar(); aviso(YO.puede?"":sinPermiso(),"error"); } };
+$("btnOtro").onclick=()=>{ $("exito").style.display="none"; $("form").style.display=""; limpiar(); aviso(""); };
 
 /* ---------------------------------------------------------------- inicio */
-const AVISO_PRUEBA="<b>Modo prueba:</b> falta configurar la dirección del servidor (CFG.endpoint). "+
-  "Puedes probar el reconocimiento con tus archivos; al guardar no se sube nada.";
+function sinPermiso(){
+  return "<b>Tu usuario del portal"+(YO.nombre?" ("+esc(YO.nombre)+")":"")+" no tiene permiso para subir artes.</b> "+
+         "Puedes ver los artes en el visor. Si te toca subirlos, pídele a Christian el permiso a “Subir arte” en el portal.";
+}
 $("txtMax").textContent=CFG.maxArchivos+" archivos de "+CFG.maxMB+" MB cada uno";
-$("lnkVisor").href=CFG.visor;
+$("lnkVisor").href=CFG.visor; $("lnkVisor2").href=CFG.visor;
 llenarSelect("cliente",CAT.clientes); llenarSelect("proveedor",CAT.proveedores); llenarSelect("tipo",CAT.tipos);
 recuperar();
-(async function(){
-  if(!CFG.endpoint){ aviso(AVISO_PRUEBA,"info"); return; }
-  if(!window.pdfjsLib) aviso("No se pudo cargar el lector de PDF: puedes subir igual, pero los datos no se reconocerán solos.","info");
+(function(){ const s=window.LIVES_SESION&&LIVES_SESION.actual(); if(s&&s.nombre){ YO.nombre=s.nombre; $("f_porTxt").textContent=s.nombre; } })();
+async function iniciar(){
   try{
-    const j=await apiGet({accion:"listar"});
-    if(!j.ok) throw new Error(j.error||"");
+    const j=await rpc("avios_listar");
     FILAS=j.filas||[];
+    YO=j.yo||{nombre:"",puede:false};
+    $("f_porTxt").textContent=YO.nombre||"—";
     if(j.catalogos && j.catalogos.clientes && j.catalogos.clientes.length){
       CAT=j.catalogos;
       llenarSelect("cliente",CAT.clientes); llenarSelect("proveedor",CAT.proveedores); llenarSelect("tipo",CAT.tipos);
     }
+    $("btnGuardar").disabled=!YO.puede;
+    if(!YO.puede) aviso(sinPermiso(),"error");
+    else if(!window.pdfjsLib) aviso("No se pudo cargar el lector de PDF: puedes subir igual, pero los datos no se reconocerán solos.","info");
+    else aviso("");
     pintarLista(); avisarDuplicado();
   }catch(err){
-    aviso("No se pudo leer lo ya cargado ("+esc(err.message||"sin conexión")+"). Puedes subir igual; solo no se avisará si el item ya existe.","info");
+    aviso("No se pudo conectar con la base de datos ("+esc(String(err.message||"sin conexión").replace(/\.+$/,""))+"). "+
+          "Revisa tu señal y pulsa <b>Reintentar</b>. Lo que escribas aquí no se pierde. "+
+          '<button type="button" class="btn" id="btnReintentar" style="margin-left:8px;padding:6px 12px">Reintentar</button>',"error");
+    const b=$("btnReintentar"); if(b) b.onclick=iniciar;
   }
-})();
+}
+iniciar();
 </script>
 
-<!--
-BACKEND — es el mismo contenido que artes_backend_v2.gs. Instrucciones de instalación al inicio.
+<script type="text/plain" id="backendSQL">
+/* BACKEND · se ejecuta en Supabase (SQL Editor), no en esta página.
+   Es el mismo contenido que AV01_artes_avios.sql. */
+-- =============================================================================
+-- AV01 · ARTES DE AVÍOS EN SUPABASE (proyecto lives-datos)            24/09/2026
+-- Reemplaza al Apps Script + Google Sheet + carpeta de Drive (nunca se usaron).
+--
+-- Crea:
+--   · Tablas avios_artes (cada carga), avios_historial (cada edición) y
+--     avios_catalogos (clientes, proveedores y tipos de avío).
+--   · Almacén privado "avios" (PDF, JPG y PNG, 15 MB máximo por archivo).
+--   · Funciones que usan las pantallas: avios_listar, avios_minis,
+--     avios_registrar, avios_editar.
+--
+-- Permisos:
+--   · Ver el visor y los archivos: cualquiera con sesión del portal.
+--   · Subir, editar y anular: permiso del portal a AVIOS/subir_arte.html, o TODO.
+--   · Quién sube o edita sale de la sesión (perfiles.nombre), nunca de la pantalla.
+--   · Nada se borra: no hay función de borrado ni permiso para reemplazar archivos.
+--
+-- Se puede volver a ejecutar. Al final muestra una verificación: todo debe decir OK.
+-- Marcha atrás: AV01_reverso.sql (solo sirve antes de la primera carga real).
+-- =============================================================================
 
-/* =============================================================================
-   LIVES · ARTES DE AVÍOS — BACKEND (Google Apps Script)
-   Guarda los archivos en una carpeta de Drive y los datos en esta hoja.
+-- ---------------------------------------------------------------- tablas
+create sequence if not exists public.avios_art_seq;
 
-   INSTALACIÓN (una sola vez)
-   1. Crear una Google Sheet nueva llamada "LIVES · Artes de avíos"
-      (idealmente en una cuenta de LIVES administrada por Sistemas, no personal:
-      los archivos ocupan el espacio de Drive de esa cuenta).
-   2. Extensiones → Apps Script → borrar lo que haya y pegar TODO este archivo.
-   3. Guardar. Elegir la función "configurar" arriba y pulsar Ejecutar.
-      Aceptar los permisos (Sheets y Drive). Crea las hojas y la carpeta.
-   4. Implementar → Nueva implementación → tipo "Aplicación web"
-      Ejecutar como: Yo · Quién tiene acceso: Cualquier usuario → Implementar.
-   5. Copiar la URL que termina en /exec y pegarla en CFG.endpoint de
-      index.html (visor) y de subir_arte.html (carga).
+create table if not exists public.avios_artes (
+  id              text primary key,                       -- ART-000001
+  creado          timestamptz not null default now(),
+  area            text not null,
+  subido_por      text not null,                          -- nombre de la sesión
+  usuario         text,                                   -- usuario del portal
+  item            text not null,
+  cliente         text not null,
+  proveedor       text not null,
+  tipo            text not null,
+  oc              text not null default '',
+  pedido          text not null default '',
+  estilo          text not null default '',
+  estado          text not null check (estado in ('POR APROBAR','APROBADO','RECHAZADO','ANULADO')),
+  comentario      text not null default '',
+  archivos        jsonb not null default '[]'::jsonb,     -- [{id: ruta en el almacén, nombre, mime, kb}]
+  nombres_archivo text not null default '',
+  codigos         text not null default '',               -- códigos leídos dentro de los PDF
+  miniatura       text not null default '',               -- data URL JPEG chico
+  ultima_edicion  text not null default '',
+  editado_en      timestamptz,
+  id_envio        text unique                             -- evita duplicar si se reenvía
+);
+create index if not exists avios_artes_item on public.avios_artes (item);
 
-   ACCESO ABIERTO: quien tenga el enlace puede subir y editar. Cada carga guarda área
-   y nombre, cada edición queda en HISTORIAL, y nada se borra (anular solo oculta).
+create table if not exists public.avios_historial (
+  n           bigint generated always as identity primary key,
+  fecha       timestamptz not null default now(),
+  id          text not null references public.avios_artes(id),
+  campo       text not null,
+  antes       text,
+  despues     text,
+  editado_por text not null,
+  usuario     text
+);
+create index if not exists avios_historial_id on public.avios_historial (id);
 
-   SI CAMBIAS ESTE CÓDIGO DESPUÉS
-   Implementar → Gestionar implementaciones → lápiz → Versión: "Nueva versión"
-   → Implementar. Así la URL /exec sigue siendo la misma. Si creas una
-   implementación nueva, cambia la URL y hay que actualizar los dos HTML.
-   ============================================================================= */
+create table if not exists public.avios_catalogos (
+  tipo        text not null check (tipo in ('CLIENTE','PROVEEDOR','TIPO')),
+  valor       text not null,
+  descripcion text not null default '',
+  orden       integer not null default 100,
+  activo      boolean not null default true,
+  primary key (tipo, valor)
+);
 
-const ZONA           = 'America/Lima';
-const NOMBRE_CARPETA = 'LIVES · Artes de avíos';
-const MAX_MB         = 15;
+insert into public.avios_catalogos (tipo, valor, descripcion, orden) values
+  ('CLIENTE','EFI','Eileen Fisher',1),
+  ('CLIENTE','PAK','Paka',2),
+  ('CLIENTE','THY','Theory',3),
+  ('CLIENTE','VINCE','Vince',4),
+  ('CLIENTE','PERUVIAN','',5),
+  ('CLIENTE','QUIMA','',6),
+  ('CLIENTE','HELMUT LANG','',7),
+  ('CLIENTE','STRAIGHT DOWN','',8),
+  ('PROVEEDOR','ADESERV','',1),
+  ('PROVEEDOR','AVERY DENNISON','',2),
+  ('PROVEEDOR','CACOTEC','',3),
+  ('PROVEEDOR','EMTIQUET','',4),
+  ('PROVEEDOR','TRIMCO GROUP','Portal Nexgen',5),
+  ('TIPO','ETIQUETA ID','Identifica producto, estilo o PO dentro de la prenda',1),
+  ('TIPO','ETIQUETA DE MARCA / TALLA','',2),
+  ('TIPO','ETIQUETA DE COMPOSICIÓN Y CUIDADO','Fibra, país de origen e instrucciones de lavado',3),
+  ('TIPO','STICKER DE TALLA / CÓDIGO','Adhesivo con talla y código de barras',4),
+  ('TIPO','STICKER DE PRECIO','Adhesivo con precio de venta sugerido',5),
+  ('TIPO','HANGTAG','Etiqueta colgante de cartón',6)
+on conflict (tipo, valor) do nothing;
 
-const H_ARTES = 'ARTES';
-const H_HIST  = 'HISTORIAL';
-const H_CAT   = 'CATALOGOS';
+-- Nadie lee ni escribe las tablas directo: todo pasa por las funciones de abajo.
+alter table public.avios_artes     enable row level security;
+alter table public.avios_historial enable row level security;
+alter table public.avios_catalogos enable row level security;
+revoke all on public.avios_artes, public.avios_historial, public.avios_catalogos from public, anon, authenticated;
+revoke all on sequence public.avios_art_seq from public, anon, authenticated;
+grant select on public.avios_artes, public.avios_historial, public.avios_catalogos to service_role;
 
-const COLS = ['ID','FECHA_CARGA','AREA','SUBIDO_POR','ITEM','CLIENTE','PROVEEDOR','TIPO_AVIO',
-              'OC','PEDIDO','ESTILO','ESTADO','COMENTARIO','ARCHIVOS','NOMBRES_ARCHIVO',
-              'CODIGOS_DETECTADOS','MINIATURA','ULTIMA_EDICION'];
-const C = {}; COLS.forEach(function(n,i){ C[n] = i + 1; });   // número de columna (1 = A)
+-- ---------------------------------------------------------------- auxiliares
+create or replace function public.avios_up(v text) returns text
+language sql immutable set search_path = public as $$
+  select upper(regexp_replace(trim(coalesce(v, '')), '\s+', ' ', 'g'))
+$$;
 
-const ESTADOS = ['POR APROBAR','APROBADO','RECHAZADO','ANULADO'];
-const AREAS   = ['COMERCIAL','LOGÍSTICA','CALIDAD'];
-const EDITABLES = { item:'ITEM', cliente:'CLIENTE', proveedor:'PROVEEDOR', tipo:'TIPO_AVIO',
-                    oc:'OC', pedido:'PEDIDO', estilo:'ESTILO', estado:'ESTADO', comentario:'COMENTARIO' };
-const MIMES = ['application/pdf','image/jpeg','image/png'];
+create or replace function public.avios_codigo(v text) returns text
+language sql immutable set search_path = public as $$
+  select left(regexp_replace(public.avios_up(v), '\s*[-–]\s*', '-', 'g'), 60)
+$$;
 
-const CATALOGO_INICIAL = [
-  ['CLIENTE','EFI','Eileen Fisher'],
-  ['CLIENTE','PAK','Paka'],
-  ['CLIENTE','THY','Theory'],
-  ['CLIENTE','VINCE','Vince'],
-  ['CLIENTE','PERUVIAN',''],
-  ['CLIENTE','QUIMA',''],
-  ['CLIENTE','HELMUT LANG',''],
-  ['CLIENTE','STRAIGHT DOWN',''],
-  ['PROVEEDOR','ADESERV',''],
-  ['PROVEEDOR','AVERY DENNISON',''],
-  ['PROVEEDOR','CACOTEC',''],
-  ['PROVEEDOR','EMTIQUET',''],
-  ['PROVEEDOR','TRIMCO GROUP','Portal Nexgen'],
-  ['TIPO','ETIQUETA ID','Identifica producto, estilo o PO dentro de la prenda'],
-  ['TIPO','ETIQUETA DE MARCA / TALLA',''],
-  ['TIPO','ETIQUETA DE COMPOSICIÓN Y CUIDADO','Fibra, país de origen e instrucciones de lavado'],
-  ['TIPO','STICKER DE TALLA / CÓDIGO','Adhesivo con talla y código de barras'],
-  ['TIPO','STICKER DE PRECIO','Adhesivo con precio de venta sugerido'],
-  ['TIPO','HANGTAG','Etiqueta colgante de cartón']
-];
+-- Quién es la sesión: usuario y nombre del portal.
+create or replace function public.avios_quien_()
+returns table (usuario text, nombre text)
+language sql stable security definer set search_path = public as $$
+  select pf.usuario, coalesce(nullif(trim(pf.nombre), ''), pf.usuario)
+    from public.perfiles pf
+   where pf.user_id::text = auth.uid()::text
+     and coalesce(pf.activo, true)
+   limit 1
+$$;
 
-/* ------------------------------------------------------------------ INSTALACIÓN */
-function configurar(){
-  hoja_(H_ARTES, COLS);
-  hoja_(H_HIST, ['FECHA','ID','CAMPO','ANTES','DESPUES','EDITADO_POR']);
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let cat = ss.getSheetByName(H_CAT);
-  if(!cat){
-    cat = ss.insertSheet(H_CAT);
-    cat.getRange(1,1,1,3).setValues([['TIPO','VALOR','DESCRIPCION']]).setFontWeight('bold');
-    cat.getRange(2,1,CATALOGO_INICIAL.length,3).setNumberFormat('@').setValues(CATALOGO_INICIAL);
-    cat.setFrozenRows(1);
-    cat.setColumnWidth(2, 260); cat.setColumnWidth(3, 360);
-  }
-  const carpeta = carpeta_();
-  Logger.log('Listo. Carpeta de archivos: ' + carpeta.getUrl());
-}
+-- Puede subir, editar y anular: permiso a AVIOS/subir_arte.html o TODO.
+create or replace function public.avios_puede_subir() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1
+      from public.perfiles pf
+      join public.permisos pm on lower(trim(pm.usuario)) = lower(trim(pf.usuario))
+     where pf.user_id::text = auth.uid()::text
+       and coalesce(pf.activo, true)
+       and (upper(trim(pm.permiso)) = 'TODO'
+            or pm.permiso ilike '%AVIOS/subir\_arte.html%'))
+$$;
 
-/* ------------------------------------------------------------------ LECTURA */
-function doGet(e){
-  const p = (e && e.parameter) || {};
-  let r;
-  try{
-    const a = p.accion || 'ping';
-    if(a === 'listar')       r = listar_();
-    else if(a === 'minis')   r = minis_(String(p.ids || ''), String(p.filas || ''));
-    else if(a === 'archivo') r = archivo_(String(p.id || ''));
-    else                     r = { ok:true, vivo:true };
-  }catch(err){
-    r = { ok:false, error: String(err && err.message || err) };
-  }
-  return salida_(r, p.callback);
-}
+-- ---------------------------------------------------------------- lectura
+create or replace function public.avios_listar() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_usuario text;
+  v_nombre  text;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'Sin sesión del portal.');
+  end if;
+  select q.usuario, q.nombre into v_usuario, v_nombre from public.avios_quien_() q;
 
-function listar_(){
-  const sh = hoja_(H_ARTES, COLS);
-  const n = sh.getLastRow();
-  const filas = [];
-  if(n >= 2){
-    // Se leen todas las columnas menos MINIATURA (pesa mucho); las miniaturas van aparte.
-    const a = sh.getRange(2, 1, n - 1, C.CODIGOS_DETECTADOS).getDisplayValues();
-    const b = sh.getRange(2, C.ULTIMA_EDICION, n - 1, 1).getDisplayValues();
-    for(let i = 0; i < a.length; i++){
-      const v = a[i].map(limpio_);
-      if(!v[0]) continue;
-      let archivos = [];
-      try{ archivos = JSON.parse(v[C.ARCHIVOS - 1] || '[]'); }catch(_){ archivos = []; }
-      filas.push({
-        fila: i + 2, id: v[0], fecha: v[1], area: v[2], por: v[3], item: v[4], cliente: v[5],
-        proveedor: v[6], tipo: v[7], oc: v[8], pedido: v[9], estilo: v[10], estado: v[11],
-        comentario: v[12], archivos: archivos, codigos: v[C.CODIGOS_DETECTADOS - 1],
-        editado: limpio_(b[i][0])
-      });
-    }
-  }
-  return { ok:true, filas: filas, catalogos: catalogos_(),
-           servidor: Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm') };
-}
+  return jsonb_build_object(
+    'ok', true,
+    'filas', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'id', a.id,
+               'fecha', to_char(a.creado at time zone 'America/Lima', 'YYYY-MM-DD HH24:MI'),
+               'area', a.area, 'por', a.subido_por, 'item', a.item, 'cliente', a.cliente,
+               'proveedor', a.proveedor, 'tipo', a.tipo, 'oc', a.oc, 'pedido', a.pedido,
+               'estilo', a.estilo, 'estado', a.estado, 'comentario', a.comentario,
+               'archivos', a.archivos, 'codigos', a.codigos, 'editado', a.ultima_edicion,
+               'mini', a.miniatura <> '')
+             order by a.creado desc, a.id desc)
+        from public.avios_artes a), '[]'::jsonb),
+    'catalogos', jsonb_build_object(
+      'clientes', coalesce((select jsonb_agg(jsonb_build_object('v', c.valor, 'd', c.descripcion) order by c.orden, c.valor)
+                              from public.avios_catalogos c where c.tipo = 'CLIENTE' and c.activo), '[]'::jsonb),
+      'proveedores', coalesce((select jsonb_agg(jsonb_build_object('v', c.valor, 'd', c.descripcion) order by c.orden, c.valor)
+                              from public.avios_catalogos c where c.tipo = 'PROVEEDOR' and c.activo), '[]'::jsonb),
+      'tipos', coalesce((select jsonb_agg(jsonb_build_object('v', c.valor, 'd', c.descripcion) order by c.orden, c.valor)
+                              from public.avios_catalogos c where c.tipo = 'TIPO' and c.activo), '[]'::jsonb),
+      'estados', jsonb_build_array('POR APROBAR','APROBADO','RECHAZADO','ANULADO'),
+      'areas', jsonb_build_array('LOGÍSTICA','CALIDAD')),
+    'servidor', to_char(now() at time zone 'America/Lima', 'YYYY-MM-DD HH24:MI'),
+    'yo', jsonb_build_object('usuario', v_usuario, 'nombre', v_nombre,
+                             'puede', public.avios_puede_subir()));
+end $$;
 
-function catalogos_(){
-  const out = { clientes:[], proveedores:[], tipos:[], estados: ESTADOS, areas: AREAS };
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(H_CAT);
-  if(!sh || sh.getLastRow() < 2) return out;
-  sh.getRange(2, 1, sh.getLastRow() - 1, 3).getDisplayValues().forEach(function(r){
-    const t = String(r[0]).trim().toUpperCase(), v = up_(r[1]), d = String(r[2]).trim();
-    if(!v) return;
-    if(t === 'CLIENTE')   out.clientes.push({ v:v, d:d });
-    if(t === 'PROVEEDOR') out.proveedores.push({ v:v, d:d });
-    if(t === 'TIPO')      out.tipos.push({ v:v, d:d });
-  });
-  return out;
-}
+-- Miniaturas solo de las tarjetas que se están viendo (hasta 60 por vez).
+create or replace function public.avios_minis(p_ids text[]) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'Sin sesión del portal.');
+  end if;
+  return jsonb_build_object('ok', true, 'minis', coalesce((
+    select jsonb_object_agg(a.id, a.miniatura)
+      from public.avios_artes a
+     where a.id = any ((coalesce(p_ids, '{}'::text[]))[1:60])
+       and a.miniatura <> ''), '{}'::jsonb));
+end $$;
 
-function minis_(idsTxt, filasTxt){
-  const ids = idsTxt.split(',').filter(String).slice(0, 60);
-  const filas = filasTxt.split(',').map(Number).filter(function(x){ return x >= 2; }).slice(0, 60);
-  const out = {};
-  if(!ids.length || !filas.length) return { ok:true, minis: out };
-  const sh = hoja_(H_ARTES, COLS);
-  const quiere = {}; ids.forEach(function(x){ quiere[x] = true; });
-  const min = Math.min.apply(null, filas), max = Math.min(Math.max.apply(null, filas), sh.getLastRow());
-  if(max < min) return { ok:true, minis: out };
-  if(max - min <= 300){
-    const idCol = sh.getRange(min, C.ID, max - min + 1, 1).getDisplayValues();
-    const miCol = sh.getRange(min, C.MINIATURA, max - min + 1, 1).getDisplayValues();
-    for(let i = 0; i < idCol.length; i++){
-      if(quiere[idCol[i][0]] && miCol[i][0]) out[idCol[i][0]] = miCol[i][0];
-    }
-  }else{
-    filas.forEach(function(f){
-      if(f > sh.getLastRow()) return;
-      const id = sh.getRange(f, C.ID).getDisplayValue();
-      if(!quiere[id]) return;
-      const m = sh.getRange(f, C.MINIATURA).getDisplayValue();
-      if(m) out[id] = m;
-    });
-  }
-  return { ok:true, minis: out };
-}
+-- ---------------------------------------------------------------- guardar una carga
+create or replace function public.avios_registrar(
+  p_datos    jsonb,
+  p_archivos jsonb,
+  p_mini     text default '',
+  p_codigos  text default '',
+  p_envio    text default '')
+returns jsonb
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  v_usuario text;
+  v_nombre  text;
+  v_envio   text := trim(coalesce(p_envio, ''));
+  v_prev    text;
+  v_item    text := public.avios_up(p_datos->>'item');
+  v_cliente text := public.avios_up(p_datos->>'cliente');
+  v_prov    text := public.avios_up(p_datos->>'proveedor');
+  v_tipo    text := public.avios_up(p_datos->>'tipo');
+  v_estado  text := public.avios_up(p_datos->>'estado');
+  v_area    text := public.avios_up(p_datos->>'area');
+  v_lista   jsonb := '[]'::jsonb;
+  v_n       integer;
+  v_x       jsonb;
+  v_ruta    text;
+  v_mime    text;
+  v_mini    text := coalesce(p_mini, '');
+  v_id      text;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'Sin sesión del portal. Vuelve a entrar desde el portal.');
+  end if;
+  select q.usuario, q.nombre into v_usuario, v_nombre from public.avios_quien_() q;
+  if v_usuario is null then
+    return jsonb_build_object('ok', false, 'error', 'Tu usuario no figura activo en el portal. No se guardó.');
+  end if;
+  if not public.avios_puede_subir() then
+    return jsonb_build_object('ok', false, 'error', 'Tu usuario no tiene permiso para subir artes. No se guardó.');
+  end if;
+  if v_envio !~ '^[A-Za-z0-9-]{8,64}$' then
+    return jsonb_build_object('ok', false, 'error', 'Falta el identificador de envío. Recarga la página.');
+  end if;
 
-function archivo_(id){
-  if(!/^[\w-]{15,}$/.test(id)) throw new Error('Identificador de archivo no válido.');
-  const f = DriveApp.getFileById(id);
-  if(f.isTrashed() || !enCarpeta_(f)) throw new Error('El archivo no pertenece a la carpeta de artes.');
-  const blob = f.getBlob();
-  return { ok:true, nombre: f.getName(), mime: blob.getContentType(),
-           b64: Utilities.base64Encode(blob.getBytes()) };
-}
+  -- Reenvío: si esta carga ya se guardó, devuelve el mismo código.
+  select a.id into v_prev from public.avios_artes a where a.id_envio = v_envio;
+  if v_prev is not null then
+    return jsonb_build_object('ok', true, 'id', v_prev, 'repetido', true);
+  end if;
 
-/* ------------------------------------------------------------------ ESCRITURA */
-function doPost(e){
-  let r;
-  try{
-    const d = JSON.parse(e.postData.contents);
-    if(d.accion === 'subir')          r = subir_(d);
-    else if(d.accion === 'registrar') r = registrar_(d);
-    else if(d.accion === 'editar')    r = editar_(d);
-    else throw new Error('Acción desconocida.');
-  }catch(err){
-    r = { ok:false, error: String(err && err.message || err) };
-  }
-  return salida_(r);
-}
+  if v_item = ''    then return jsonb_build_object('ok', false, 'error', 'Falta el Item.'); end if;
+  if v_cliente = '' then return jsonb_build_object('ok', false, 'error', 'Falta el cliente.'); end if;
+  if v_prov = ''    then return jsonb_build_object('ok', false, 'error', 'Falta el proveedor.'); end if;
+  if v_tipo = ''    then return jsonb_build_object('ok', false, 'error', 'Falta el tipo de avío.'); end if;
+  if v_estado not in ('POR APROBAR','APROBADO','RECHAZADO') then
+    return jsonb_build_object('ok', false, 'error', 'Estado no válido.');
+  end if;
+  if v_area not in ('LOGÍSTICA','CALIDAD') then
+    return jsonb_build_object('ok', false, 'error', 'Área no válida.');
+  end if;
 
-function subir_(d){
-  if(!String(d.por || '').trim()) throw new Error('Falta quién sube.');
-  const mime = String(d.mime || '').toLowerCase();
-  if(MIMES.indexOf(mime) < 0) throw new Error('Solo se aceptan PDF, JPG o PNG.');
-  const b64 = String(d.b64 || '');
-  if(!b64) throw new Error('El archivo llegó vacío.');
-  const bytes = Math.floor(b64.length * 3 / 4);
-  if(bytes > MAX_MB * 1024 * 1024) throw new Error('El archivo pasa de ' + MAX_MB + ' MB.');
-  const base = String(d.nombre || 'archivo').replace(/[\\\/:*?"<>|]+/g, '_').slice(0, 140);
-  const sello = Utilities.formatDate(new Date(), ZONA, 'yyyyMMdd-HHmmss');
-  const blob = Utilities.newBlob(Utilities.base64Decode(b64), mime, sello + '_' + base);
-  const file = carpeta_().createFile(blob);
-  file.setDescription('Item ' + up_(d.item) + ' · subido por ' + String(d.por || '').slice(0, 60));
-  return { ok:true, id: file.getId(), kb: Math.max(1, Math.round(file.getSize() / 1024)) };
-}
+  if jsonb_typeof(p_archivos) is distinct from 'array' or jsonb_array_length(p_archivos) = 0 then
+    return jsonb_build_object('ok', false, 'error', 'No llegó ningún archivo.');
+  end if;
+  v_n := jsonb_array_length(p_archivos);
+  if v_n > 10 then
+    return jsonb_build_object('ok', false, 'error', 'Máximo 10 archivos por carga.');
+  end if;
 
-function registrar_(d){
-  const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try{
-    const x = d.datos || {};
-    const item = up_(x.item), cliente = up_(x.cliente), proveedor = up_(x.proveedor),
-          tipo = up_(x.tipo), estado = up_(x.estado), area = up_(x.area),
-          por = String(x.por || '').trim().slice(0, 60);
-    if(!item)      throw new Error('Falta el Item.');
-    if(!cliente)   throw new Error('Falta el cliente.');
-    if(!proveedor) throw new Error('Falta el proveedor.');
-    if(!tipo)      throw new Error('Falta el tipo de avío.');
-    if(['POR APROBAR','APROBADO','RECHAZADO'].indexOf(estado) < 0) throw new Error('Estado no válido.');
-    if(AREAS.indexOf(area) < 0) throw new Error('Área no válida.');
-    if(!por) throw new Error('Falta quién sube.');
+  for v_x in select value from jsonb_array_elements(p_archivos) loop
+    v_ruta := coalesce(v_x->>'id', '');
+    v_mime := lower(coalesce(v_x->>'mime', ''));
+    -- La ruta tiene que ser de ESTA carga (AAAA/MM/<envío>/archivo) y existir en el almacén.
+    if v_ruta !~ ('^[0-9]{4}/[0-9]{2}/' || v_envio || '/[A-Za-z0-9._-]+$')
+       or not exists (select 1 from storage.objects o where o.bucket_id = 'avios' and o.name = v_ruta) then
+      return jsonb_build_object('ok', false, 'error',
+        'El archivo ' || coalesce(v_x->>'nombre', '') || ' no está en el almacén. Vuelve a pulsar Guardar arte.');
+    end if;
+    if v_mime not in ('application/pdf','image/jpeg','image/png') then
+      return jsonb_build_object('ok', false, 'error', 'Solo se aceptan PDF, JPG o PNG.');
+    end if;
+    v_lista := v_lista || jsonb_build_array(jsonb_build_object(
+      'id', v_ruta,
+      'nombre', left(coalesce(v_x->>'nombre', ''), 150),
+      'mime', v_mime,
+      'kb', greatest(1, coalesce(round((v_x->>'kb')::numeric), 1))::integer));
+  end loop;
 
-    const archivos = (d.archivos || []).filter(function(a){ return a && a.id; }).slice(0, 10);
-    if(!archivos.length) throw new Error('No llegó ningún archivo.');
-    archivos.forEach(function(a){
-      if(!enCarpeta_(DriveApp.getFileById(a.id))) throw new Error('Archivo no válido: ' + a.nombre);
-    });
+  if not (length(v_mini) < 49000 and v_mini ~ '^data:image/(jpeg|png);base64,') then
+    v_mini := '';
+  end if;
 
-    const sh = hoja_(H_ARTES, COLS);
-    const id = siguienteId_(sh);
-    const ahora = Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm');
-    const mini = String(d.mini || '');
-    const miniOk = mini.length < 49000 && /^data:image\/(jpeg|png);base64,/.test(mini) ? mini : '';
-    const lista = archivos.map(function(a){
-      return { id: a.id, nombre: String(a.nombre || '').slice(0, 150), mime: String(a.mime || ''), kb: Number(a.kb) || 0 };
-    });
+  v_id := 'ART-' || lpad(nextval('public.avios_art_seq')::text, 6, '0');
+  begin
+    insert into public.avios_artes (id, area, subido_por, usuario, item, cliente, proveedor, tipo,
+                                    oc, pedido, estilo, estado, comentario, archivos, nombres_archivo,
+                                    codigos, miniatura, id_envio)
+    values (v_id, v_area, v_nombre, v_usuario, v_item, v_cliente, v_prov, v_tipo,
+            public.avios_codigo(p_datos->>'oc'), public.avios_codigo(p_datos->>'pedido'),
+            left(public.avios_up(p_datos->>'estilo'), 200), v_estado,
+            left(trim(coalesce(p_datos->>'comentario', '')), 1000), v_lista,
+            (select string_agg(e->>'nombre', ' | ' order by n) from jsonb_array_elements(v_lista) with ordinality t(e, n)),
+            left(coalesce(p_codigos, ''), 5000), v_mini, v_envio);
+  exception when unique_violation then
+    -- Dos envíos iguales casi al mismo tiempo: vale el primero.
+    select a.id into v_prev from public.avios_artes a where a.id_envio = v_envio;
+    if v_prev is null then raise; end if;
+    return jsonb_build_object('ok', true, 'id', v_prev, 'repetido', true);
+  end;
 
-    const fila = [];
-    fila[C.ID - 1] = id;
-    fila[C.FECHA_CARGA - 1] = ahora;
-    fila[C.AREA - 1] = area;
-    fila[C.SUBIDO_POR - 1] = por;
-    fila[C.ITEM - 1] = item;
-    fila[C.CLIENTE - 1] = cliente;
-    fila[C.PROVEEDOR - 1] = proveedor;
-    fila[C.TIPO_AVIO - 1] = tipo;
-    fila[C.OC - 1] = codigo_(x.oc);
-    fila[C.PEDIDO - 1] = codigo_(x.pedido);
-    fila[C.ESTILO - 1] = up_(x.estilo).slice(0, 200);
-    fila[C.ESTADO - 1] = estado;
-    fila[C.COMENTARIO - 1] = String(x.comentario || '').trim().slice(0, 1000);
-    fila[C.ARCHIVOS - 1] = JSON.stringify(lista);
-    fila[C.NOMBRES_ARCHIVO - 1] = lista.map(function(a){ return a.nombre; }).join(' | ');
-    fila[C.CODIGOS_DETECTADOS - 1] = String(d.codigos || '').slice(0, 5000);
-    fila[C.MINIATURA - 1] = miniOk;
-    fila[C.ULTIMA_EDICION - 1] = '';
+  return jsonb_build_object('ok', true, 'id', v_id, 'por', v_nombre);
+end $$;
 
-    const r = sh.getLastRow() + 1;
-    asegurarFila_(sh, r);
-    sh.getRange(r, 1, 1, COLS.length).setNumberFormat('@').setValues([fila.map(seguro_)]);
-    return { ok:true, id: id };
-  }finally{
-    lock.releaseLock();
-  }
-}
+-- ---------------------------------------------------------------- editar y anular
+create or replace function public.avios_editar(p_id text, p_cambios jsonb)
+returns jsonb
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  v_usuario text;
+  v_nombre  text;
+  v_actual  jsonb;
+  v_k       text;
+  v_antes   text;
+  v_nuevo   text;
+  v_hechos  integer := 0;
+  v_marca   text;
+  v_campos  constant text[] := array['item','cliente','proveedor','tipo','oc','pedido','estilo','estado','comentario'];
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'Sin sesión del portal. Vuelve a entrar desde el portal.');
+  end if;
+  select q.usuario, q.nombre into v_usuario, v_nombre from public.avios_quien_() q;
+  if v_usuario is null then
+    return jsonb_build_object('ok', false, 'error', 'Tu usuario no figura activo en el portal. No se guardó.');
+  end if;
+  if not public.avios_puede_subir() then
+    return jsonb_build_object('ok', false, 'error', 'Tu usuario no tiene permiso para editar artes. No se guardó.');
+  end if;
+  if jsonb_typeof(p_cambios) is distinct from 'object' then
+    return jsonb_build_object('ok', false, 'error', 'No llegaron cambios.');
+  end if;
 
-function editar_(d){
-  const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try{
-    const por = String(d.por || '').trim().slice(0, 60);
-    if(!por) throw new Error('Escribe tu nombre para registrar quién edita.');
-    const sh = hoja_(H_ARTES, COLS);
-    const n = sh.getLastRow();
-    if(n < 2) throw new Error('No hay registros.');
-    const ids = sh.getRange(2, 1, n - 1, 1).getDisplayValues();
-    let fila = -1;
-    for(let i = 0; i < ids.length; i++){ if(ids[i][0] === d.id){ fila = i + 2; break; } }
-    if(fila < 0) throw new Error('No se encontró el registro ' + d.id + '.');
+  select to_jsonb(a) into v_actual from public.avios_artes a where a.id = p_id for update;
+  if v_actual is null then
+    return jsonb_build_object('ok', false, 'error', 'No se encontró el registro ' || coalesce(p_id, '') || '.');
+  end if;
 
-    const actual = sh.getRange(fila, 1, 1, COLS.length).getDisplayValues()[0].map(limpio_);
-    const cambios = d.cambios || {};
-    const hist = hoja_(H_HIST, ['FECHA','ID','CAMPO','ANTES','DESPUES','EDITADO_POR']);
-    const ahora = Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd HH:mm');
-    let hechos = 0;
+  -- Primero se valida todo; si algo no vale, no se cambia nada.
+  foreach v_k in array v_campos loop
+    if not (p_cambios ? v_k) then continue; end if;
+    v_nuevo := case v_k
+                 when 'comentario' then left(trim(coalesce(p_cambios->>v_k, '')), 1000)
+                 when 'oc'         then public.avios_codigo(p_cambios->>v_k)
+                 when 'pedido'     then public.avios_codigo(p_cambios->>v_k)
+                 when 'estilo'     then left(public.avios_up(p_cambios->>v_k), 200)
+                 else public.avios_up(p_cambios->>v_k) end;
+    if v_k = 'estado' and v_nuevo not in ('POR APROBAR','APROBADO','RECHAZADO','ANULADO') then
+      return jsonb_build_object('ok', false, 'error', 'Estado no válido.');
+    end if;
+    if v_k in ('item','cliente','proveedor','tipo') and v_nuevo = '' then
+      return jsonb_build_object('ok', false, 'error', 'El campo ' || v_k || ' no puede quedar vacío.');
+    end if;
+  end loop;
 
-    Object.keys(EDITABLES).forEach(function(k){
-      if(!(k in cambios)) return;
-      const col = EDITABLES[k];
-      let nuevo = cambios[k];
-      if(k === 'comentario')              nuevo = String(nuevo || '').trim().slice(0, 1000);
-      else if(k === 'oc' || k === 'pedido') nuevo = codigo_(nuevo);
-      else                                nuevo = up_(nuevo);
-      if(k === 'estado' && ESTADOS.indexOf(nuevo) < 0) throw new Error('Estado no válido.');
-      if(['item','cliente','proveedor','tipo'].indexOf(k) > -1 && !nuevo) throw new Error('El campo ' + k + ' no puede quedar vacío.');
-      const antes = actual[C[col] - 1];
-      if(antes === nuevo) return;
-      sh.getRange(fila, C[col]).setNumberFormat('@').setValue(seguro_(nuevo));
-      const hr = hist.getLastRow() + 1;
-      asegurarFila_(hist, hr);
-      hist.getRange(hr, 1, 1, 6).setNumberFormat('@').setValues([[ahora, d.id, col, seguro_(antes), seguro_(nuevo), seguro_(por)]]);
-      hechos++;
-    });
-    if(hechos){
-      sh.getRange(fila, C.ULTIMA_EDICION).setNumberFormat('@').setValue(seguro_(ahora + ' · ' + por));
-    }
-    return { ok:true, cambios: hechos };
-  }finally{
-    lock.releaseLock();
-  }
-}
+  foreach v_k in array v_campos loop
+    if not (p_cambios ? v_k) then continue; end if;
+    v_nuevo := case v_k
+                 when 'comentario' then left(trim(coalesce(p_cambios->>v_k, '')), 1000)
+                 when 'oc'         then public.avios_codigo(p_cambios->>v_k)
+                 when 'pedido'     then public.avios_codigo(p_cambios->>v_k)
+                 when 'estilo'     then left(public.avios_up(p_cambios->>v_k), 200)
+                 else public.avios_up(p_cambios->>v_k) end;
+    v_antes := coalesce(v_actual->>v_k, '');
+    if v_antes = v_nuevo then continue; end if;
+    execute format('update public.avios_artes set %I = $1 where id = $2', v_k) using v_nuevo, p_id;
+    insert into public.avios_historial (id, campo, antes, despues, editado_por, usuario)
+    values (p_id, case v_k when 'tipo' then 'TIPO_AVIO' else upper(v_k) end, v_antes, v_nuevo, v_nombre, v_usuario);
+    v_hechos := v_hechos + 1;
+  end loop;
 
-/* ------------------------------------------------------------------ AUXILIARES */
-function hoja_(nombre, cabecera){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sh = ss.getSheetByName(nombre);
-  if(!sh){
-    sh = ss.insertSheet(nombre);
-    sh.getRange(1, 1, 1, cabecera.length).setValues([cabecera]).setFontWeight('bold');
-    sh.setFrozenRows(1);
-    // Texto plano en todas las columnas: evita que Sheets convierta "2026-09-10 14:30"
-    // en fecha o "26-2163" en otra cosa.
-    sh.getRange(1, 1, sh.getMaxRows(), cabecera.length).setNumberFormat('@');
-  }
-  return sh;
-}
+  if v_hechos > 0 then
+    v_marca := to_char(now() at time zone 'America/Lima', 'YYYY-MM-DD HH24:MI') || ' · ' || v_nombre;
+    update public.avios_artes set ultima_edicion = v_marca, editado_en = now() where id = p_id;
+  end if;
+  return jsonb_build_object('ok', true, 'cambios', v_hechos, 'editado', coalesce(v_marca, v_actual->>'ultima_edicion'));
+end $$;
 
-// getRange falla si la fila pasa del tamaño de la hoja (1000 por defecto): se agregan filas.
-function asegurarFila_(sh, r){
-  const max = sh.getMaxRows();
-  if(r > max){
-    sh.insertRowsAfter(max, 500);
-    sh.getRange(max + 1, 1, 500, sh.getMaxColumns()).setNumberFormat('@');
-  }
-}
+-- ---------------------------------------------------------------- quién ejecuta qué
+revoke all on function public.avios_up(text)                              from public, anon;
+revoke all on function public.avios_codigo(text)                          from public, anon;
+revoke all on function public.avios_quien_()                              from public, anon, authenticated;
+revoke all on function public.avios_puede_subir()                         from public, anon;
+revoke all on function public.avios_listar()                              from public, anon;
+revoke all on function public.avios_minis(text[])                         from public, anon;
+revoke all on function public.avios_registrar(jsonb, jsonb, text, text, text) from public, anon;
+revoke all on function public.avios_editar(text, jsonb)                   from public, anon;
+grant execute on function public.avios_up(text)                              to authenticated;
+grant execute on function public.avios_codigo(text)                          to authenticated;
+grant execute on function public.avios_puede_subir()                         to authenticated;
+grant execute on function public.avios_listar()                              to authenticated;
+grant execute on function public.avios_minis(text[])                         to authenticated;
+grant execute on function public.avios_registrar(jsonb, jsonb, text, text, text) to authenticated;
+grant execute on function public.avios_editar(text, jsonb)                   to authenticated;
 
-function carpeta_(){
-  const props = PropertiesService.getScriptProperties();
-  const id = props.getProperty('CARPETA_ID');
-  if(id){
-    try{ const f = DriveApp.getFolderById(id); if(!f.isTrashed()) return f; }catch(_){}
-  }
-  const nueva = DriveApp.createFolder(NOMBRE_CARPETA);
-  props.setProperty('CARPETA_ID', nueva.getId());
-  return nueva;
-}
+-- ---------------------------------------------------------------- almacén de archivos
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avios', 'avios', false, 15728640, array['application/pdf','image/jpeg','image/png'])
+on conflict (id) do update
+   set public = false,
+       file_size_limit = excluded.file_size_limit,
+       allowed_mime_types = excluded.allowed_mime_types;
 
-function enCarpeta_(file){
-  const idCarpeta = carpeta_().getId();
-  const it = file.getParents();
-  while(it.hasNext()){ if(it.next().getId() === idCarpeta) return true; }
-  return false;
-}
+drop policy if exists "avios: ver con sesion" on storage.objects;
+create policy "avios: ver con sesion" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'avios');
 
-function siguienteId_(sh){
-  const n = sh.getLastRow();
-  let max = 0;
-  if(n >= 2){
-    sh.getRange(2, 1, n - 1, 1).getDisplayValues().forEach(function(r){
-      const m = /^ART-(\d+)$/.exec(r[0]);
-      if(m) max = Math.max(max, Number(m[1]));
-    });
-  }
-  return 'ART-' + ('000000' + (max + 1)).slice(-6);
-}
+drop policy if exists "avios: subir con permiso" on storage.objects;
+create policy "avios: subir con permiso" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'avios' and public.avios_puede_subir());
+-- Sin políticas de UPDATE ni DELETE: un archivo subido no se reemplaza ni se borra.
 
-function up_(v){ return String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase(); }
-function codigo_(v){ return up_(v).replace(/\s*[-–]\s*/g, '-').slice(0, 60); }
-// Un texto que empieza con = + - @ se tomaría como fórmula: se protege con apóstrofo.
-function seguro_(v){ const s = String(v == null ? '' : v); return /^[=+\-@]/.test(s) ? "'" + s : s; }
-function limpio_(v){ return String(v == null ? '' : v).replace(/^'(?=[=+\-@])/, ''); }
-
-function salida_(obj, callback){
-  const json = JSON.stringify(obj);
-  if(callback && /^[A-Za-z_$][\w$]{0,60}$/.test(callback)){
-    return ContentService.createTextOutput(callback + '(' + json + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
-}
-
--->
+-- ---------------------------------------------------------------- verificación
+select 'Tablas' as revisa,
+       case when to_regclass('public.avios_artes') is not null
+             and to_regclass('public.avios_historial') is not null
+             and to_regclass('public.avios_catalogos') is not null then 'OK' else 'FALTA' end as resultado
+union all
+select 'Catálogo inicial (19 valores)',
+       case when (select count(*) from public.avios_catalogos) >= 19 then 'OK'
+            else 'FALTA: ' || (select count(*) from public.avios_catalogos) end
+union all
+select 'Almacén avios privado, 15 MB',
+       case when exists (select 1 from storage.buckets b where b.id = 'avios' and not b.public
+                           and b.file_size_limit = 15728640) then 'OK' else 'FALTA' end
+union all
+select 'Permisos del almacén (ver y subir)',
+       case when (select count(*) from pg_policies where schemaname = 'storage' and tablename = 'objects'
+                   and policyname in ('avios: ver con sesion','avios: subir con permiso')) = 2 then 'OK' else 'FALTA' end
+union all
+select 'Funciones',
+       case when (select count(*) from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+                   where s.nspname = 'public' and p.proname in
+                   ('avios_listar','avios_minis','avios_registrar','avios_editar','avios_puede_subir','avios_quien_')) = 6
+            then 'OK' else 'FALTA' end
+union all
+select 'Sin sesión no se lee nada (anon)',
+       case when not has_function_privilege('anon', 'public.avios_listar()', 'execute')
+             and not has_function_privilege('anon', 'public.avios_registrar(jsonb,jsonb,text,text,text)', 'execute')
+             and not has_table_privilege('anon', 'public.avios_artes', 'select')
+            then 'OK' else 'REVISAR' end
+union all
+select 'Con sesión sí (authenticated)',
+       case when has_function_privilege('authenticated', 'public.avios_listar()', 'execute')
+             and has_function_privilege('authenticated', 'public.avios_editar(text,jsonb)', 'execute')
+            then 'OK' else 'REVISAR' end
+union all
+select 'Usuarios con permiso para subir (informativo)',
+       coalesce((select string_agg(distinct pm.usuario, ', ' order by pm.usuario)
+                   from public.permisos pm
+                  where pm.permiso ilike '%AVIOS/subir\_arte.html%'), 'ninguno todavía (solo TODO)');
+</script>
 </body>
 </html>
