@@ -714,6 +714,7 @@ font-weight:400;border:1px solid var(--warm);border-radius:8px;padding:9px 12px;
 }
 .lsTope500{font-size:12px;color:#5F726C;text-align:center;padding:8px 0}
 </style>
+<style id="lsSinActCss">/* 12/10/2026: sin botón Actualizar propio; se usa el actualizar del portal */#btnActualizar{display:none!important}</style>
 </head>
 <body>
 
@@ -914,7 +915,7 @@ async function cargar(){
     render();
     abrirDesdeHash();
   }catch(err){
-    aviso("aviso","No se pudieron leer los artes: "+esc(String(err.message).replace(/\.+$/,""))+". Revisa tu conexión y pulsa <b>Actualizar</b>. "+
+    aviso("aviso","No se pudieron leer los artes: "+esc(String(err.message).replace(/\.+$/,""))+". Revisa tu conexión y actualiza la pantalla desde el portal. "+
       "Si sigue fallando, avisa a Christian.","error");
     $("hState").textContent="Sin datos";
     if(!FILAS.length){ $("cards").innerHTML=""; mostrarVacio("No se pudo cargar el visor","La base de datos no respondió. Nada se ha perdido: los artes siguen guardados."); }
