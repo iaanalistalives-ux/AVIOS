@@ -606,6 +606,7 @@ font-weight:400;border:1px solid var(--warm);border-radius:8px;padding:9px 12px;
   .wrap{max-width:none;padding:0;}
   .panel{box-shadow:none;border:1px solid var(--warm);break-inside:avoid;}
 }
+.lsTope500{font-size:12px;color:#5F726C;text-align:center;padding:8px 0}
 </style>
 </head>
 <body>
@@ -869,7 +870,7 @@ function render(){
   VISTA=filtrar();
   if(ORDEN==="item") VISTA.sort((a,b)=>a.item.localeCompare(b.item,"es")||(b.fecha+b.id).localeCompare(a.fecha+a.id));
   else VISTA.sort((a,b)=>(b.fecha+b.id).localeCompare(a.fecha+a.id));
-  MOSTRADOS=0; $("cards").innerHTML="";
+  MOSTRADOS=0; $("cards").innerHTML=""; pieTope500();
   const hayFiltro=$("q").value.trim()||$("selCliente").value||$("selProveedor").value||$("selTipo").value||$("selEstado").value!=="VIGENTES";
   if(!FILAS.length){
     $("conteo").textContent="";
@@ -889,9 +890,19 @@ function render(){
 }
 function mostrarVacio(t,s){ $("vacio").style.display=""; $("vacioT").textContent=t; $("vacioS").textContent=s; }
 
+/* Regla 500: sin filtros, "Mostrar más" llega hasta las 500 cargas más recientes; con filtro, a todas. */
+function hayFiltroVisor(){ return !!($("q").value.trim()||$("selCliente").value||$("selProveedor").value||$("selTipo").value||$("selEstado").value!=="VIGENTES"); }
+function topeVisor(){ return hayFiltroVisor() ? VISTA.length : Math.min(VISTA.length, 500); }
+function pieTope500(){
+  let d=$("lsTope500");
+  if(!d){ const m=$("btnMas").parentNode; d=document.createElement("div"); d.id="lsTope500"; d.className="lsTope500"; m.parentNode.insertBefore(d,m.nextSibling); }
+  const tope=topeVisor();
+  if(tope<VISTA.length && MOSTRADOS>=tope){ d.textContent="Se muestran los 500 registros más recientes de "+VISTA.length.toLocaleString("es-PE")+". Usa los filtros para ver los demás."; d.style.display=""; }
+  else { d.textContent=""; d.style.display="none"; }
+}
 function pintar(){
   const cpi=cargasPorItem();
-  const lote=VISTA.slice(MOSTRADOS, MOSTRADOS+CFG.porPagina);
+  const lote=VISTA.slice(MOSTRADOS, Math.min(MOSTRADOS+CFG.porPagina, topeVisor()));
   const html=lote.map(r=>{
     const a0=(r.archivos||[])[0]||{}, ext=/pdf/.test(a0.mime||"")?"PDF":(/png/.test(a0.mime||"")?"PNG":"JPG");
     const n=(r.archivos||[]).length, c=cpi[r.item]||0;
@@ -908,8 +919,9 @@ function pintar(){
   }).join("");
   $("cards").insertAdjacentHTML("beforeend",html);
   MOSTRADOS+=lote.length;
-  $("btnMas").style.display=MOSTRADOS<VISTA.length?"":"none";
-  $("btnMas").textContent="Mostrar más ("+(VISTA.length-MOSTRADOS).toLocaleString("es-PE")+" restantes)";
+  $("btnMas").style.display=MOSTRADOS<topeVisor()?"":"none";
+  $("btnMas").textContent="Mostrar más ("+(topeVisor()-MOSTRADOS).toLocaleString("es-PE")+" restantes)";
+  pieTope500();
   $("cards").querySelectorAll(".arte:not([data-ok])").forEach(el=>{
     el.dataset.ok="1";
     el.onclick=()=>abrirFicha(el.dataset.id);
