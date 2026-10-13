@@ -824,7 +824,6 @@ font-weight:400;border:1px solid var(--warm);border-radius:8px;padding:9px 12px;
     <span class="spacer"></span>
     <button class="btn" id="btnLimpiar" type="button">Limpiar filtros</button>
     <button class="btn" id="btnActualizar" type="button">Actualizar</button>
-    <a class="btn primary" id="lnkCarga" href="#">+ Subir arte</a>
     </div>
   </div>
 
@@ -901,7 +900,6 @@ font-weight:400;border:1px solid var(--warm);border-radius:8px;padding:9px 12px;
 const CFG = {
   sb       : "https://xxfufpddgoyhbotjmaiy.supabase.co",           // proyecto lives-datos
   llavePublica: "sb_publishable_1g-n6UT70EUlNAo8Lyc04w_jKR4LpXZ",  // pública; los datos exigen sesión
-  carga    : "subir_arte.html",
   porPagina: 24,
   maxPaginasPDF: 15
 };
@@ -988,7 +986,6 @@ async function cargar(){
     const vig=FILAS.filter(r=>r.estado!=="ANULADO");
     const items=new Set(vig.map(r=>r.item)).size;
     $("hState").innerHTML=vig.length.toLocaleString("es-PE")+" cargas vigentes · "+items.toLocaleString("es-PE")+" items<br>Datos al "+esc(fechaTxt(j.servidor,true));
-    $("lnkCarga").style.display=YO.puede?"":"none";
     $("btnEditar").style.display=YO.puede?"":"none";
     armarFiltros();
     render();
@@ -1316,7 +1313,6 @@ async function guardarEdicion(){
 }
 
 /* ---------------------------------------------------------------- inicio */
-$("lnkCarga").href=CFG.carga;
 if(!window.pdfjsLib) aviso("aviso","No se pudo cargar el lector de PDF: la vista previa se abrirá con el visor del navegador.","info");
 cargar();
 </script>

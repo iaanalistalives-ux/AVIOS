@@ -605,8 +605,6 @@ font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums;}
 /* Dentro del portal (iframe) el portal ya pone su barra: se oculta el header propio. */
 html.embebido .header, html.embebido header, html.embebido .topbar{display:none!important}
 html.embebido body{padding-top:0!important;margin-top:0!important}
-.solo-emb{display:none!important}
-html.embebido .solo-emb{display:inline-flex!important;margin-bottom:12px}
 .fijo{min-height:44px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--warm);border-radius:8px;background:var(--warm-light);font-weight:700;color:#1a1a1a;}
 
 .header{background:var(--petrol);border-bottom:3px solid var(--emer);min-height:70px;
@@ -746,11 +744,9 @@ details.help p{color:var(--stone);margin:8px 0 0;}
     <div class="htitle">Subir arte de avíos</div>
     <div class="hsub">Logística y Calidad · lo que guardes aparece en el visor de artes</div>
   </div>
-  <div class="hstate"><a id="lnkVisor" href="#">Ir al visor de artes →</a></div>
 </div>
 
 <div class="wrap">
-  <a class="btn solo-emb" id="lnkVisor2" href="#">← Volver al visor</a>
   <div class="aviso" id="aviso"></div>
 
   <form id="form" autocomplete="off" novalidate>
@@ -889,8 +885,7 @@ details.help p{color:var(--stone);margin:8px 0 0;}
     <div class="s" id="exitoTxt">Ya aparece en el visor. No hace falta reenviar el correo.</div>
     <div class="cod" id="codigo"></div>
     <div class="acciones">
-      <a class="btn primary" id="lnkVerRegistro" href="#">Ver en el visor</a>
-      <button type="button" class="btn" id="btnOtro">Subir otro</button>
+      <button type="button" class="btn primary" id="btnOtro">Subir otro</button>
     </div>
   </div>
 
@@ -916,7 +911,6 @@ details.help p{color:var(--stone);margin:8px 0 0;}
 const CFG = {
   sb         : "https://xxfufpddgoyhbotjmaiy.supabase.co",           // proyecto lives-datos
   llavePublica: "sb_publishable_1g-n6UT70EUlNAo8Lyc04w_jKR4LpXZ",  // pública; los datos exigen sesión
-  visor      : "./",                // el visor es el index.html de la misma carpeta
   maxArchivos: 10,
   maxMB      : 15
 };
@@ -1386,7 +1380,6 @@ function terminar(id){
   $("exito").style.display="block";
   $("codigo").textContent="Código del registro: "+id;
   $("exitoTxt").textContent="Ya aparece en el visor. No hace falta reenviar el correo.";
-  $("lnkVerRegistro").href=CFG.visor+"#"+encodeURIComponent(id);
   const t=new Date(), p2=n=>String(n).padStart(2,"0");
   const ahora=t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())+" "+p2(t.getHours())+":"+p2(t.getMinutes());
   if(!FILAS.some(r=>r.id===id))
@@ -1412,7 +1405,6 @@ function sinPermiso(){
          "Puedes ver los artes en el visor. Si te toca subirlos, pídele a Christian el permiso a “Subir arte” en el portal.";
 }
 $("txtMax").textContent=CFG.maxArchivos+" archivos de "+CFG.maxMB+" MB cada uno";
-$("lnkVisor").href=CFG.visor; $("lnkVisor2").href=CFG.visor;
 llenarSelect("cliente",CAT.clientes); llenarSelect("proveedor",CAT.proveedores); llenarSelect("tipo",CAT.tipos);
 recuperar();
 (function(){ const s=window.LIVES_SESION&&LIVES_SESION.actual(); if(s&&s.nombre){ YO.nombre=s.nombre; $("f_porTxt").textContent=s.nombre; } })();
